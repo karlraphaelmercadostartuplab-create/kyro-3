@@ -183,7 +183,7 @@ export default function Settings({ settings, customPages }: SettingsProps) {
                                     }}
                                     className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
                                         activeTab === tab.key
-                                           ? 'rounded-t-lg border-primary bg-primary text-primary-foreground'
+                                            ? 'rounded-t-lg border-primary bg-primary text-primary-foreground'
                                             : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-accent/40'
                                     }`}
                                     
