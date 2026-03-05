@@ -33,7 +33,7 @@ import { useBrand } from "@/contexts/brand-context";
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { auth } = usePage<PageProps>().props;
     const { t } = useTranslation();
-    const { settings, getCompleteSidebarProps } = useBrand();
+    const { settings, getCompleteSidebarProps, getPreviewUrl } = useBrand();
     const [searchQuery, setSearchQuery] = React.useState("");
 
     const sidebarProps = getCompleteSidebarProps();
@@ -76,7 +76,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 {/* Icon for collapsed sidebar */}
                 <div className="h-8 w-8 hidden group-data-[collapsible=icon]:block">
                   {(() => {
-                    const { getPreviewUrl } = useBrand();
+                    
                     const displayFavicon = settings.favicon ? getPreviewUrl(settings.favicon) : '';
 
                     return displayFavicon ? (

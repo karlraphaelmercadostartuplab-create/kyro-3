@@ -3,7 +3,8 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "tsc && vite build"
+        "build": "npm run ensure-deps && npm exec --package typescript tsc && npm exec --package vite vite build",
+        "ensure-deps": "[ -d node_modules ] || npm install"
     },
     "devDependencies": {
         "@headlessui/react": "^1.4.2",

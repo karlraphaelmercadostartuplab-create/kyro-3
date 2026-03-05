@@ -148,7 +148,16 @@ const getImagePath = (path: string, pageProps?: any): string => {
 
   try {
       
-  }
+  let imageUrlPrefix = pageProps?.imageUrlPrefix;
+
+    if (!imageUrlPrefix) {
+      const { props } = usePage();
+      imageUrlPrefix = (props as any).imageUrlPrefix;
+    }
+
+    if (!imageUrlPrefix) {
+      imageUrlPrefix = `${window.location.origin}/storage/media/`;
+    }
     // Detect workdo path
     const isWorkdoPath = path.startsWith('packages/workdo/') || path.startsWith('/packages/workdo/');
 
@@ -168,9 +177,8 @@ const getImagePath = (path: string, pageProps?: any): string => {
       return imageUrlPrefix + path.substring(1);
     } else if (!prefixEndsWithSlash && !pathStartsWithSlash) {
       return imageUrlPrefix + '/' + path;
-    } else {
-      return imageUrlPrefix + path;
     }
+    return imageUrlPrefix + path;
   } catch {
     let fallbackPrefix;
     const isWorkdoPath = path.startsWith('packages/workdo/') || path.startsWith('/packages/workdo/');
