@@ -150,8 +150,7 @@ export default function Settings({ settings, customPages }: SettingsProps) {
                         <Button 
                             onClick={saveSettings} 
                             disabled={isLoading} 
-                            className="text-white"
-                            style={{ backgroundColor: 'hsl(var(--primary))' }}
+                            className="bg-primary text-primary-foreground hover:bg-primary/90"
                         >
                             <Save className="h-4 w-4 mr-2" />
                             {isLoading ? t('Saving...') : t('Save Changes')}
@@ -167,7 +166,7 @@ export default function Settings({ settings, customPages }: SettingsProps) {
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                     <div className="lg:col-span-3 space-y-6">
                         {/* Tab Navigation */}
-                        <div className="flex border-b border-gray-200 mb-8">
+                        <div className="flex border-b border-border mb-8">
                             {[
                                 { key: 'setup', label: t('Setup'), sections: ['general', 'order', 'colors'] },
                                 { key: 'layout', label: t('Layout'), sections: ['header', 'hero', 'footer'] },
@@ -184,13 +183,10 @@ export default function Settings({ settings, customPages }: SettingsProps) {
                                     }}
                                     className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
                                         activeTab === tab.key
-                                            ? 'text-white rounded-t-lg'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                                           ? 'rounded-t-lg border-primary bg-primary text-primary-foreground'
+                                            : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-accent/40'
                                     }`}
-                                    style={activeTab === tab.key ? {
-                                        backgroundColor: 'hsl(var(--primary))',
-                                        borderColor: 'hsl(var(--primary))'
-                                    } : {}}
+                                    
                                 >
                                     {tab.label}
                                 </button>
@@ -214,11 +210,7 @@ export default function Settings({ settings, customPages }: SettingsProps) {
                                         variant={activeSection === section.key ? "default" : "outline"}
                                         size="sm"
                                         onClick={() => setActiveSection(section.key as any)}
-                                        style={activeSection === section.key ? {
-                                            backgroundColor: 'hsl(var(--primary))',
-                                            borderColor: 'hsl(var(--primary))',
-                                            color: 'white'
-                                        } : {}}
+                                        className={activeSection === section.key ? 'bg-primary text-primary-foreground hover:bg-primary/90 border-primary' : ''}
                                     >
                                         {section.label}
                                     </Button>
