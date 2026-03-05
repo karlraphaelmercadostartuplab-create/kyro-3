@@ -38,11 +38,11 @@ export function SearchInput({
         />
         {value && (
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             onClick={() => {
               onChange('');
-              setTimeout(() => onSearch(true), 0);
             }}
             className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
           >
@@ -50,7 +50,8 @@ export function SearchInput({
           </Button>
         )}
       </div>
-      <Button onClick={() => onSearch()}>{t('Search')}</Button>
+      <Button type="button" onClick={() => onSearch()}>{t('Search')}</Button>
     </div>
   );
+
 }
