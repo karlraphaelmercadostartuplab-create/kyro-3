@@ -119,9 +119,9 @@ export default function Pricing(props: PricingProps) {
                          <div className="grid gap-6" style={{ gridTemplateColumns: `200px repeat(${plans.length}, 280px)`, minWidth: `${200 + (plans.length * 280) + ((plans.length - 1) * 24)}px` }}>
 
                                 {/* Features Header (smaller and non-sticky on mobile) */}
-                                <div className="bg-[#060b16] rounded-xl p-4 border border-slate-700 md:sticky md:left-0 md:z-20">
+                                <div className="bg-white rounded-xl p-4 border border-gray-200 md:sticky md:left-0 md:z-20">
                                     <div className="flex items-center justify-center space-x-3">
-                                        <h3 className="text-lg font-bold text-gray-100">{t("Features")}</h3>
+                                        <h3 className="text-lg font-bold text-gray-900">{t("Features")}</h3>
                                     </div>
                                 </div>
                                 {/* Plan Header Cards */}
@@ -210,16 +210,16 @@ export default function Pricing(props: PricingProps) {
                             <div className="space-y-4">
                                 <div className="grid gap-6" style={{ gridTemplateColumns: `300px repeat(${plans.length}, 280px)`, minWidth: `${300 + (plans.length * 280) + ((plans.length - 1) * 24)}px` }}>
                                     {/* All Modules Card */}
-                                    <div className="bg-[#060b16] rounded-2xl p-6 border border-slate-700 sticky left-0 z-20">
+                                    <div className="bg-white rounded-2xl p-6 border border-gray-200 sticky left-0 z-20">
                                         <div className="space-y-3">
-                                            <div className="flex items-center justify-center py-2 h-10 border-b border-slate-700 mb-3">
-                                                <span className="text-gray-100 font-semibold text-sm">
+                                            <div className="flex items-center justify-center py-2 h-10 border-b border-gray-200 mb-3">
+                                                <span className="text-gray-900 font-semibold text-sm">
                                                     {t("Features")}
                                                 </span>
                                             </div>
                                             {activeModules.map((module) => (
                                                 <div key={module.module} className="flex items-center justify-center py-2 h-10">
-                                                    <span className="text-gray-300 capitalize text-sm">
+                                                    <span className="text-gray-700 capitalize text-sm">
                                                         {module.alias}
                                                     </span>
                                                 </div>
@@ -233,10 +233,10 @@ export default function Pricing(props: PricingProps) {
                                         const totalAddOns = activeModules.length;
                                         
                                         return (
-                                        <div key={plan.id} className="bg-[#060b16] rounded-2xl p-6 border border-slate-700">
+                                        <div key={plan.id} className="bg-white rounded-2xl p-6 border border-gray-200">
                                             <div className="space-y-3">
-                                                <div className="flex items-center justify-center py-2 h-10 border-b border-slate-700 mb-3">
-                                                    <span className="text-gray-100 font-semibold text-sm">
+                                                <div className="flex items-center justify-center py-2 h-10 border-b border-gray-200 mb-3">
+                                                    <span className="text-gray-900 font-semibold text-sm">
                                                         {enabledAddOns.length}/{totalAddOns} {t("Enabled")}
                                                     </span>
                                                 </div>
@@ -320,3 +320,4 @@ export default function Pricing(props: PricingProps) {
         </div>
     );
 }
+
