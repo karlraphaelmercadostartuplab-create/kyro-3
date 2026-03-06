@@ -68,19 +68,9 @@ export default function Header({ settings }: HeaderProps) {
     const colors = settings?.config_sections?.colors || { primary: '#10b77f', secondary: '#059669', accent: '#f59e0b' };
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     
-    const savedThemeMode = getAdminSetting('theme_mode') || getAdminSetting('themeMode');
-    const isDarkDocument = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
-    const themeMode = savedThemeMode || (isDarkDocument ? 'dark' : 'light');
-
-    const useLightLogo = themeMode === 'dark' || variant === 'header4' || variant === 'header5';
-    const preferredLogo = useLightLogo
-        ? (getAdminSetting('logo_light') || getAdminSetting('logoLight'))
-        : (getAdminSetting('logo_dark') || getAdminSetting('logoDark'));
-    const fallbackLogo = useLightLogo
-        ? (getAdminSetting('logo_dark') || getAdminSetting('logoDark'))
-        : (getAdminSetting('logo_light') || getAdminSetting('logoLight'));
-
-    const logoPath = preferredLogo || fallbackLogo;
+    const themeMode = getAdminSetting('theme_mode') || 'light';
+    const logoKey = themeMode === 'dark' ? 'logo_light' : 'logo_dark';
+    const logoPath = getAdminSetting(logoKey);
     const logoUrl = logoPath ? getImagePath(logoPath) : null;
     
     // Use dynamic navigation items from settings or empty array
@@ -99,8 +89,8 @@ export default function Header({ settings }: HeaderProps) {
 
     const renderNavItems = (isMobile = false) => {
         const isTransparentOrGradient = variant === 'header4' || variant === 'header5';
-        const textColor = isTransparentOrGradient ? 'text-white' : 'text-gray-600 dark:text-gray-300';
-        const hoverBg = variant === 'header2' ? 'hover:bg-gray-100 hover:shadow-sm dark:hover:bg-white/10' : variant === 'header3' ? 'hover:bg-gray-50 dark:hover:bg-white/10' : isTransparentOrGradient ? 'hover:bg-white/10' : 'hover:bg-gray-50 dark:hover:bg-white/10';
+        const textColor = isTransparentOrGradient ? 'text-white' : 'text-gray-600';
+        const hoverBg = variant === 'header2' ? 'hover:bg-white hover:shadow-sm' : variant === 'header3' ? 'hover:bg-gray-50' : isTransparentOrGradient ? 'hover:bg-white/10' : 'hover:bg-gray-50';
         
         return allNavigationItems.map((item) => {
             const href = item.href?.startsWith('/page/') ? route('custom-page.show', item.href.replace('/page/', '')) : item.href;
@@ -258,8 +248,8 @@ export default function Header({ settings }: HeaderProps) {
                                     variant === 'header4' || variant === 'header5' 
                                         ? 'text-white hover:bg-white/10' 
                                         : variant === 'header2' 
-                                             ? 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 hover:shadow-sm dark:hover:bg-white/10'
-                                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/10'
+                                            ? 'text-gray-600 hover:bg-white hover:shadow-sm'
+                                            : 'text-gray-600 hover:bg-gray-50'
                                 }`}
                                 onMouseEnter={(e) => {
                                     if (variant !== 'header4' && variant !== 'header5') {
