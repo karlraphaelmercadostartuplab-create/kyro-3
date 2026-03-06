@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 <<<<<<<< HEAD:public/build/assets/html2canvas-DIcF_i3n.js
 import{g as c}from"./vendor-CcMVubkO.js";import{r as f}from"./html2pdf-CAQc4GWi.js";function l(r,n){for(var o=0;o<n.length;o++){const e=n[o];if(typeof e!="string"&&!Array.isArray(e)){for(const t in e)if(t!=="default"&&!(t in r)){const a=Object.getOwnPropertyDescriptor(e,t);a&&Object.defineProperty(r,t,a.get?a:{enumerable:!0,get:()=>e[t]})}}}return Object.freeze(Object.defineProperty(r,Symbol.toStringTag,{value:"Module"}))}var s=f();const i=c(s),u=l({__proto__:null,default:i},[s]);export{u as h};
 ========
 import{g as c}from"./vendor-CcMVubkO.js";import{r as f}from"./html2pdf-Czh7YJSw.js";function l(r,n){for(var o=0;o<n.length;o++){const e=n[o];if(typeof e!="string"&&!Array.isArray(e)){for(const t in e)if(t!=="default"&&!(t in r)){const a=Object.getOwnPropertyDescriptor(e,t);a&&Object.defineProperty(r,t,a.get?a:{enumerable:!0,get:()=>e[t]})}}}return Object.freeze(Object.defineProperty(r,Symbol.toStringTag,{value:"Module"}))}var s=f();const i=c(s),u=l({__proto__:null,default:i},[s]);export{u as h};
 >>>>>>>> parent of b915fd0 (Landing page Darkmode fix):public/build/assets/html2canvas-D4Aoz7qt.js
+=======
+import{g as c}from"./vendor-CcMVubkO.js";import{r as f}from"./html2pdf-Czh7YJSw.js";function l(r,n){for(var o=0;o<n.length;o++){const e=n[o];if(typeof e!="string"&&!Array.isArray(e)){for(const t in e)if(t!=="default"&&!(t in r)){const a=Object.getOwnPropertyDescriptor(e,t);a&&Object.defineProperty(r,t,a.get?a:{enumerable:!0,get:()=>e[t]})}}}return Object.freeze(Object.defineProperty(r,Symbol.toStringTag,{value:"Module"}))}var s=f();const i=c(s),u=l({__proto__:null,default:i},[s]);export{u as h};
+>>>>>>> parent of b915fd0 (Landing page Darkmode fix)

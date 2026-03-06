@@ -1,8 +1,18 @@
 <<<<<<<< HEAD:public/build/assets/auth-layout-B3LWMOyT.js
+<<<<<<< HEAD
+=======
+<<<<<<<< HEAD:public/build/assets/auth-layout-B3LWMOyT.js
+>>>>>>> parent of b915fd0 (Landing page Darkmode fix)
 import{j as r}from"./ui-CFOo-GGi.js";import{X as n,x as c}from"./app-BUaJ8yVb.js";import{u as m,a as x,L as g,B as b}from"./use-favicon-U7oxw3zE.js";import{j as p}from"./helpers-Cw4mul8c.js";import{A as h}from"./application-logo-CoXh6gAf.js";import{C as u}from"./cookie-consent-CFfpdSA2.js";function j({children:t,title:s,description:o}){const{settings:a,getPrimaryColor:i}=m(),{adminAllSetting:d}=n().props;x();const l=a.themeMode==="dark"?a.logo_light||a.logo_dark:a.logo_dark||a.logo_light,e=i();return r.jsxs("div",{className:"min-h-screen bg-gray-50 relative overflow-hidden",children:[r.jsx("style",{children:`
 ========
 import{j as r}from"./ui-CFOo-GGi.js";import{X as n,x as c}from"./app-ByvhRbKI.js";import{u as m,a as x,L as g,B as b}from"./use-favicon-IrsIcaX6.js";import{j as p}from"./helpers-CsxQhOuU.js";import{A as h}from"./application-logo-CoXh6gAf.js";import{C as u}from"./cookie-consent-D-D7DxnL.js";function j({children:t,title:s,description:o}){const{settings:a,getPrimaryColor:i}=m(),{adminAllSetting:d}=n().props;x();const l=a.themeMode==="dark"?a.logo_light||a.logo_dark:a.logo_dark||a.logo_light,e=i();return r.jsxs("div",{className:"min-h-screen bg-gray-50 relative overflow-hidden",children:[r.jsx("style",{children:`
 >>>>>>>> parent of b915fd0 (Landing page Darkmode fix):public/build/assets/auth-layout-CcLsRkqU.js
+<<<<<<< HEAD
+=======
+========
+import{j as r}from"./ui-CFOo-GGi.js";import{X as n,x as c}from"./app-ByvhRbKI.js";import{u as m,a as x,L as g,B as b}from"./use-favicon-IrsIcaX6.js";import{j as p}from"./helpers-CsxQhOuU.js";import{A as h}from"./application-logo-CoXh6gAf.js";import{C as u}from"./cookie-consent-D-D7DxnL.js";function j({children:t,title:s,description:o}){const{settings:a,getPrimaryColor:i}=m(),{adminAllSetting:d}=n().props;x();const l=a.themeMode==="dark"?a.logo_light||a.logo_dark:a.logo_dark||a.logo_light,e=i();return r.jsxs("div",{className:"min-h-screen bg-gray-50 relative overflow-hidden",children:[r.jsx("style",{children:`
+>>>>>>>> parent of b915fd0 (Landing page Darkmode fix):public/build/assets/auth-layout-CcLsRkqU.js
+>>>>>>> parent of b915fd0 (Landing page Darkmode fix)
                 .bg-primary {
                     background-color: ${e} !important;
                     color: white !important;

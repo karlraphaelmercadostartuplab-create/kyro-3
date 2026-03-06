@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 <<<<<<<< HEAD:public/build/assets/useDeleteHandler-DLDvRYNH.js
 import{r as p}from"./vendor-CcMVubkO.js";import{A as D}from"./app-BUaJ8yVb.js";const c=({routeName:s,defaultMessage:e="Are you sure you want to delete this item?",onSuccess:t,onError:n})=>{const[o,r]=p.useState({isOpen:!1,id:null,message:e}),a=(l,m)=>{r({isOpen:!0,id:l,message:m||e})},i=()=>{r({isOpen:!1,id:null,message:e})};return{deleteState:o,openDeleteDialog:a,closeDeleteDialog:i,confirmDelete:()=>{o.id&&D.delete(route(s,o.id),{onSuccess:l=>{i(),t==null||t(l)},onError:n})}}};export{c as u};
 ========
 import{r as p}from"./vendor-CcMVubkO.js";import{A as D}from"./app-ByvhRbKI.js";const c=({routeName:s,defaultMessage:e="Are you sure you want to delete this item?",onSuccess:t,onError:n})=>{const[o,r]=p.useState({isOpen:!1,id:null,message:e}),a=(l,m)=>{r({isOpen:!0,id:l,message:m||e})},i=()=>{r({isOpen:!1,id:null,message:e})};return{deleteState:o,openDeleteDialog:a,closeDeleteDialog:i,confirmDelete:()=>{o.id&&D.delete(route(s,o.id),{onSuccess:l=>{i(),t==null||t(l)},onError:n})}}};export{c as u};
 >>>>>>>> parent of b915fd0 (Landing page Darkmode fix):public/build/assets/useDeleteHandler-txrf_MTh.js
+=======
+import{r as p}from"./vendor-CcMVubkO.js";import{A as D}from"./app-ByvhRbKI.js";const c=({routeName:s,defaultMessage:e="Are you sure you want to delete this item?",onSuccess:t,onError:n})=>{const[o,r]=p.useState({isOpen:!1,id:null,message:e}),a=(l,m)=>{r({isOpen:!0,id:l,message:m||e})},i=()=>{r({isOpen:!1,id:null,message:e})};return{deleteState:o,openDeleteDialog:a,closeDeleteDialog:i,confirmDelete:()=>{o.id&&D.delete(route(s,o.id),{onSuccess:l=>{i(),t==null||t(l)},onError:n})}}};export{c as u};
+>>>>>>> parent of b915fd0 (Landing page Darkmode fix)

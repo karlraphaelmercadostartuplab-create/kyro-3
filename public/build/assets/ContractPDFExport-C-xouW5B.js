@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <<<<<<<< HEAD:public/build/assets/ContractPDFExport-DlhH_nnx.js
 const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./html2pdf-CAQc4GWi.js","./vendor-CcMVubkO.js","./app-BUaJ8yVb.js","./ui-CFOo-GGi.js","./app-CQG9E_-B.css","./app-D6um6frg.css"])))=>i.map(i=>d[i]);
 import{_ as g}from"./app-BUaJ8yVb.js";import{j as i}from"./ui-CFOo-GGi.js";import{B as x}from"./button-BIxgaAmS.js";import{a as f,b,c as h}from"./tooltip-D0FDZQLm.js";import{f as v,a as n,k as p}from"./helpers-Cw4mul8c.js";import{u as _}from"./useTranslation-CMEABpT6.js";import{D as y}from"./download-DpWzK9fg.js";/* empty css            */import"./vendor-CcMVubkO.js";import"./index-BMyiKApA.js";import"./utils-B-dksMZM.js";import"./utils-DrcJ8Itn.js";import"./index-q_WbhzOA.js";import"./createLucideIcon-Dov4NOxw.js";function A({contract:e,variant:s="outline",size:a="sm"}){const{t}=_(),d=()=>{var r;const l=document.createElement("div");l.innerHTML=`
@@ -5,6 +6,10 @@ import{_ as g}from"./app-BUaJ8yVb.js";import{j as i}from"./ui-CFOo-GGi.js";impor
 const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./html2pdf-Czh7YJSw.js","./vendor-CcMVubkO.js","./app-ByvhRbKI.js","./ui-CFOo-GGi.js","./app-CQG9E_-B.css","./app-Bb-M63ho.css"])))=>i.map(i=>d[i]);
 import{_ as g}from"./app-ByvhRbKI.js";import{j as i}from"./ui-CFOo-GGi.js";import{B as x}from"./button-BIxgaAmS.js";import{a as f,b,c as h}from"./tooltip-D0FDZQLm.js";import{f as v,a as n,k as p}from"./helpers-CsxQhOuU.js";import{u as _}from"./useTranslation-2pr8-TG8.js";import{D as y}from"./download-DpWzK9fg.js";/* empty css            */import"./vendor-CcMVubkO.js";import"./index-BMyiKApA.js";import"./utils-B-dksMZM.js";import"./utils-DrcJ8Itn.js";import"./index-q_WbhzOA.js";import"./createLucideIcon-Dov4NOxw.js";function A({contract:e,variant:s="outline",size:a="sm"}){const{t}=_(),d=()=>{var r;const l=document.createElement("div");l.innerHTML=`
 >>>>>>>> parent of b915fd0 (Landing page Darkmode fix):public/build/assets/ContractPDFExport-C-xouW5B.js
+=======
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./html2pdf-Czh7YJSw.js","./vendor-CcMVubkO.js","./app-ByvhRbKI.js","./ui-CFOo-GGi.js","./app-CQG9E_-B.css","./app-Bb-M63ho.css"])))=>i.map(i=>d[i]);
+import{_ as g}from"./app-ByvhRbKI.js";import{j as i}from"./ui-CFOo-GGi.js";import{B as x}from"./button-BIxgaAmS.js";import{a as f,b,c as h}from"./tooltip-D0FDZQLm.js";import{f as v,a as n,k as p}from"./helpers-CsxQhOuU.js";import{u as _}from"./useTranslation-2pr8-TG8.js";import{D as y}from"./download-DpWzK9fg.js";/* empty css            */import"./vendor-CcMVubkO.js";import"./index-BMyiKApA.js";import"./utils-B-dksMZM.js";import"./utils-DrcJ8Itn.js";import"./index-q_WbhzOA.js";import"./createLucideIcon-Dov4NOxw.js";function A({contract:e,variant:s="outline",size:a="sm"}){const{t}=_(),d=()=>{var r;const l=document.createElement("div");l.innerHTML=`
+>>>>>>> parent of b915fd0 (Landing page Darkmode fix)
             <div style="padding: 40px; font-family: Arial, sans-serif;">
                 <div style="border-bottom: 2px solid #e5e7eb; padding-bottom: 24px; margin-bottom: 32px;">
                     <h1 style="font-size: 24px; font-weight: bold; color: #111827; margin-bottom: 8px;">${e.subject}</h1>
@@ -69,8 +74,12 @@ import{_ as g}from"./app-ByvhRbKI.js";import{j as i}from"./ui-CFOo-GGi.js";impor
                     <p>${t("Generated on")} ${p(e.created_at)} • ${e.contract_number}</p>
                 </div>
             </div>
+<<<<<<< HEAD
 <<<<<<<< HEAD:public/build/assets/ContractPDFExport-DlhH_nnx.js
         `;const m={margin:.5,filename:`contract-${e.contract_number}.pdf`,image:{type:"jpeg",quality:.98},html2canvas:{scale:2},jsPDF:{unit:"in",format:"letter",orientation:"portrait"}};g(()=>import("./html2pdf-CAQc4GWi.js").then(o=>o.h),__vite__mapDeps([0,1,2,3,4,5]),import.meta.url).then(o=>{o.default().set(m).from(l).save()})};return i.jsxs(f,{children:[i.jsx(b,{asChild:!0,children:i.jsx(x,{variant:s,size:a,onClick:d,children:i.jsx(y,{className:"h-4 w-4"})})}),i.jsx(h,{children:i.jsx("p",{children:t("Download PDF")})})]})}export{A as default};
 ========
         `;const m={margin:.5,filename:`contract-${e.contract_number}.pdf`,image:{type:"jpeg",quality:.98},html2canvas:{scale:2},jsPDF:{unit:"in",format:"letter",orientation:"portrait"}};g(()=>import("./html2pdf-Czh7YJSw.js").then(o=>o.h),__vite__mapDeps([0,1,2,3,4,5]),import.meta.url).then(o=>{o.default().set(m).from(l).save()})};return i.jsxs(f,{children:[i.jsx(b,{asChild:!0,children:i.jsx(x,{variant:s,size:a,onClick:d,children:i.jsx(y,{className:"h-4 w-4"})})}),i.jsx(h,{children:i.jsx("p",{children:t("Download PDF")})})]})}export{A as default};
 >>>>>>>> parent of b915fd0 (Landing page Darkmode fix):public/build/assets/ContractPDFExport-C-xouW5B.js
+=======
+        `;const m={margin:.5,filename:`contract-${e.contract_number}.pdf`,image:{type:"jpeg",quality:.98},html2canvas:{scale:2},jsPDF:{unit:"in",format:"letter",orientation:"portrait"}};g(()=>import("./html2pdf-Czh7YJSw.js").then(o=>o.h),__vite__mapDeps([0,1,2,3,4,5]),import.meta.url).then(o=>{o.default().set(m).from(l).save()})};return i.jsxs(f,{children:[i.jsx(b,{asChild:!0,children:i.jsx(x,{variant:s,size:a,onClick:d,children:i.jsx(y,{className:"h-4 w-4"})})}),i.jsx(h,{children:i.jsx("p",{children:t("Download PDF")})})]})}export{A as default};
+>>>>>>> parent of b915fd0 (Landing page Darkmode fix)

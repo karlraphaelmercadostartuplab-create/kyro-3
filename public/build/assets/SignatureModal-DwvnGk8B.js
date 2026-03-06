@@ -1,8 +1,18 @@
 <<<<<<<< HEAD:public/build/assets/SignatureModal-CzAmrKRX.js
+<<<<<<< HEAD
+=======
+<<<<<<<< HEAD:public/build/assets/SignatureModal-CzAmrKRX.js
+>>>>>>> parent of b915fd0 (Landing page Darkmode fix)
 import{j as E}from"./ui-CFOo-GGi.js";import{d as G,e as V,g as J,r as U}from"./vendor-CcMVubkO.js";import{A as K}from"./app-BUaJ8yVb.js";import{D as Q,a as Z,b as tt,c as et}from"./dialog-CWbEZsuL.js";import{B as z}from"./button-BIxgaAmS.js";import{r as nt}from"./index-Chjiymov.js";import{u as rt}from"./useTranslation-CMEABpT6.js";import{P as it}from"./pen-tool-CqsLxcXF.js";/* empty css            */import"./utils-DrcJ8Itn.js";import"./utils-B-dksMZM.js";import"./x-DVK_F_Gh.js";import"./createLucideIcon-Dov4NOxw.js";import"./index-BMyiKApA.js";var X={exports:{}};/*!
 ========
 import{j as E}from"./ui-CFOo-GGi.js";import{d as G,e as V,g as J,r as U}from"./vendor-CcMVubkO.js";import{A as K}from"./app-ByvhRbKI.js";import{D as Q,a as Z,b as tt,c as et}from"./dialog-CWbEZsuL.js";import{B as z}from"./button-BIxgaAmS.js";import{r as nt}from"./index-Chjiymov.js";import{u as rt}from"./useTranslation-2pr8-TG8.js";import{P as it}from"./pen-tool-CqsLxcXF.js";/* empty css            */import"./utils-DrcJ8Itn.js";import"./utils-B-dksMZM.js";import"./x-DVK_F_Gh.js";import"./createLucideIcon-Dov4NOxw.js";import"./index-BMyiKApA.js";var X={exports:{}};/*!
 >>>>>>>> parent of b915fd0 (Landing page Darkmode fix):public/build/assets/SignatureModal-DwvnGk8B.js
+<<<<<<< HEAD
+=======
+========
+import{j as E}from"./ui-CFOo-GGi.js";import{d as G,e as V,g as J,r as U}from"./vendor-CcMVubkO.js";import{A as K}from"./app-ByvhRbKI.js";import{D as Q,a as Z,b as tt,c as et}from"./dialog-CWbEZsuL.js";import{B as z}from"./button-BIxgaAmS.js";import{r as nt}from"./index-Chjiymov.js";import{u as rt}from"./useTranslation-2pr8-TG8.js";import{P as it}from"./pen-tool-CqsLxcXF.js";/* empty css            */import"./utils-DrcJ8Itn.js";import"./utils-B-dksMZM.js";import"./x-DVK_F_Gh.js";import"./createLucideIcon-Dov4NOxw.js";import"./index-BMyiKApA.js";var X={exports:{}};/*!
+>>>>>>>> parent of b915fd0 (Landing page Darkmode fix):public/build/assets/SignatureModal-DwvnGk8B.js
+>>>>>>> parent of b915fd0 (Landing page Darkmode fix)
  * Signature Pad v2.3.2
  * https://github.com/szimek/signature_pad
  *
