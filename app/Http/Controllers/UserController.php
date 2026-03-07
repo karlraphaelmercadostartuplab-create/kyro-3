@@ -163,26 +163,26 @@ class UserController extends Controller
 
     public function impersonate(User $user)
     {
-        if (!Auth::user()->can('impersonate-users')) {
-            return redirect()->route('users.index')->with('error', __('Permission denied'));
-        }
-
+        if (Auth::user()->can('impersonate-users'))
+        {
             if ($user->id === Auth::id()) {
-            return redirect()->route('users.index')->with('error', __('You cannot login as user yourself'));
-        }
+                return redirect()->route('users.index')->with('error', __('You cannot login as user yourself'));
+            }
 
-            $isSuperAdmin = Auth::user()->type === 'superadmin';
+            if ($user->created_by !== creatorId()) {
+                return redirect()->route('users.index')->with('error', __('Permission denied'));
+            }
+
+            // Store the original user ID in session
+            Session::put('impersonator_id', Auth::id());
 
             // Login as the target user
-            if (!$isSuperAdmin && $user->created_by !== creatorId()) {
+            Auth::login($user);
+        }
+        else
+        {
             return redirect()->route('users.index')->with('error', __('Permission denied'));
         }
-
-        // Store the original user ID in session
-        Session::put('impersonator_id', Auth::id());
-
-        // Login as the target user
-        Auth::login($user);
 
         return redirect()->route('dashboard')->with('success', __('You are now login as user :name', ['name' => $user->name]));
     }

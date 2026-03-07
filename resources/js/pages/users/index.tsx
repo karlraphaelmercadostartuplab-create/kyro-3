@@ -150,7 +150,7 @@ export default function Index() {
                 </span>
             )
         },
-        ...(auth.user?.permissions?.some((p: string) => ['impersonate-users', 'change-password-users', 'edit-users', 'delete-users'].includes(p)) ? [{
+        ...(auth.user?.permissions?.some((p: string) => ['change-password-users', 'edit-users', 'delete-users'].includes(p)) ? [{
             key: 'actions',
             header: t('Actions'),
             render: (_: any, user: User) => (
