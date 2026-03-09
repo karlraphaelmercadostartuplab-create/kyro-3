@@ -24,13 +24,13 @@ class CustomPageSeeder extends Seeder
                             <h3 class="text-2xl font-semibold text-gray-900 mb-4">Our Mission</h3>
                             <p class="text-gray-600 leading-relaxed">To democratize access to enterprise-grade financial tools, enabling businesses of all sizes to manage their accounting with precision and ease.</p>
                         </div>
-                        <div class="bg-gray-100 rounded-lg p-8">
+                        <div class="rounded-lg p-8 border border-white/10" style="background-color: color-mix(in srgb, var(--color-primary) 10%, #020617);">
                             <h3 class="text-2xl font-semibold text-gray-900 mb-4">Our Vision</h3>
                             <p class="text-gray-600 leading-relaxed">To be the global standard for cloud-based business management, where every transaction is transparent, secure, and insightful.</p>
                         </div>
                     </div>
                     
-                    <div class="rounded-lg p-8" style="background-color: color-mix(in srgb, var(--color-primary) 5%, white);">
+                    <div class="rounded-lg p-8" style="background-color: color-mix(in srgb, var(--color-primary) 10%, #020617); border: 1px solid rgba(148, 163, 184, 0.25);">
                         <h3 class="text-2xl font-semibold text-gray-900 mb-6 text-center">Why Choose AccountGo?</h3>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="text-center">
@@ -119,7 +119,7 @@ class CustomPageSeeder extends Seeder
                         </ul>
                     </div>
                     
-                    <div class="rounded-lg p-6" style="background-color: color-mix(in srgb, var(--color-primary) 5%, white);">
+                    <div class="rounded-lg p-6" style="background-color: color-mix(in srgb, var(--color-primary) 10%, #020617); border: 1px solid rgba(148, 163, 184, 0.25);">
                         <h3 class="text-xl font-semibold text-gray-900 mb-3">Legal Contact</h3>
                         <p class="text-gray-600">For legal inquiries, contact legal@accountgosaas.com</p>
                     </div>
@@ -156,19 +156,19 @@ class CustomPageSeeder extends Seeder
                         </div>
                     </div>
                     
-                    <div class="text-center rounded-lg p-8" style="background-color: color-mix(in srgb, var(--color-primary) 5%, white);">
+                    <div class="text-center rounded-lg p-8" style="background-color: color-mix(in srgb, var(--color-primary) 10%, #020617); border: 1px solid rgba(148, 163, 184, 0.25);">
                         <h3 class="text-xl font-semibold text-gray-900 mb-3">How does budgeting and variance tracking work?</h3>
                         <p class="text-gray-600 mb-4">Kyro lets you create structured budgets by category, project, or department and compare them against actual spending in real time. Variance insights help founders quickly spot overspending, savings, or unexpected changes. This supports better cash discipline and more confident decision-making.</p>
                         <button class="px-6 py-3 text-white rounded-md font-medium" style="background-color: var(--color-primary);">Contact Support</button>
                         
                     </div>
-                    <div class="text-center rounded-lg p-8" style="background-color: color-mix(in srgb, var(--color-primary) 5%, white);">
+                    <div class="text-center rounded-lg p-8" style="background-color: color-mix(in srgb, var(--color-primary) 10%, #020617); border: 1px solid rgba(148, 163, 184, 0.25);">
                         <h3 class="text-xl font-semibold text-gray-900 mb-3">What is included in support?</h3>
                         <p class="text-gray-600 mb-4">Kyro provides email support, onboarding guidance, and access to help resources inside the Founder Support Hub. Founders can get assistance with setup, feature usage, and troubleshooting as they grow. You can contact support anytime at support@kyro.ph and expect a response within 24 hours.</p>
                         <button class="px-6 py-3 text-white rounded-md font-medium" style="background-color: var(--color-primary);">Contact Support</button>
                         
                     </div>
-                    <div class="text-center rounded-lg p-8" style="background-color: color-mix(in srgb, var(--color-primary) 5%, white);">
+                    <div class="text-center rounded-lg p-8" style="background-color: color-mix(in srgb, var(--color-primary) 10%, #020617); border: 1px solid rgba(148, 163, 184, 0.25);">
                         <h3 class="text-xl font-semibold text-gray-900 mb-3">Is my data secure and backed up?</h3>
                         <p class="text-gray-600 mb-4">Yes. Kyro uses secure infrastructure, controlled access permissions, and regular backups to protect your financial data. Your information remains private and accessible only to authorized users. These safeguards help ensure business continuity and peace of mind.</p>
                         <button class="px-6 py-3 text-white rounded-md font-medium" style="background-color: var(--color-primary);">Contact Support</button>

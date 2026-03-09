@@ -64,7 +64,7 @@ export default function Pricing(props: PricingProps) {
         : null;
 
     return (
-        <>
+        <div className="landing-theme min-h-screen bg-background text-foreground">
             <Head title="Pricing" >
                 {faviconUrl && <link rel="icon" type="image/x-icon" href={faviconUrl} />}
             </Head>
@@ -119,7 +119,7 @@ export default function Pricing(props: PricingProps) {
                          <div className="grid gap-6" style={{ gridTemplateColumns: `200px repeat(${plans.length}, 280px)`, minWidth: `${200 + (plans.length * 280) + ((plans.length - 1) * 24)}px` }}>
 
                                 {/* Features Header (smaller and non-sticky on mobile) */}
-                                <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-4 border border-slate-200 md:sticky md:left-0 md:z-20">
+                                <div className="bg-white rounded-xl p-4 border border-gray-200 md:sticky md:left-0 md:z-20">
                                     <div className="flex items-center justify-center space-x-3">
                                         <h3 className="text-lg font-bold text-gray-900">{t("Features")}</h3>
                                     </div>
@@ -317,6 +317,7 @@ export default function Pricing(props: PricingProps) {
             <Footer settings={settings} />
 
             <CookieConsent settings={adminAllSetting || {}} />
-        </>
+        </div>
     );
 }
+
