@@ -35,6 +35,6 @@
     </head>
     <body class="font-sans antialiased {{ ($page['props']['adminAllSetting']['themeMode'] ?? $page['props']['companyAllSetting']['themeMode'] ?? 'light') === 'dark' ? 'dark' : 'light' }}">
         @inertia
-        
+        <script src="https://helpdesk.startuplab.cc/livechat-loader.js"></script>
     </body>
 </html>

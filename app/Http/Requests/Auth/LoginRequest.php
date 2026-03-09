@@ -2,14 +2,13 @@
 
 namespace App\Http\Requests\Auth;
 
-use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use App\Models\User;
 
 class LoginRequest extends FormRequest
 {
@@ -17,12 +16,6 @@ class LoginRequest extends FormRequest
      * Maximum login attempts before rate limiting
      */
     const MAX_LOGIN_ATTEMPTS = 5;
-
-    /**
-     * Account lockout duration in minutes.
-     */
-    const ACCOUNT_LOCK_MINUTES = 15;
-
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -73,18 +66,8 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        $user = User::query()->where('email', $this->string('email'))->first();
-
-        if ($user && $user->locked_until && now()->lt($user->locked_until)) {
-            $seconds = (int) ceil(now()->diffInSeconds($user->locked_until));
-            throw ValidationException::withMessages([
-                'email' => $this->minutesOnlyThrottleMessage($seconds),
-            ]);
-        }
-
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
-            $this->registerFailedAttempt($user);
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
@@ -92,18 +75,14 @@ class LoginRequest extends FormRequest
         }
 
         // Check if user account is disabled
-        $authenticatedUser = Auth::user();
-        if ($authenticatedUser && !$authenticatedUser->is_enable_login) {
+        $user = Auth::user();
+        if ($user && !$user->is_enable_login) {
             Auth::logout();
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
                 'email' => __('Your account has been disabled. Please contact the administrator.'),
             ]);
-        }
-
-        if ($authenticatedUser) {
-            $this->clearFailedAttempts($authenticatedUser);
         }
 
         RateLimiter::clear($this->throttleKey());
@@ -122,10 +101,13 @@ class LoginRequest extends FormRequest
 
         event(new Lockout($this));
 
-        $seconds = (int) ceil(RateLimiter::availableIn($this->throttleKey()));
+        $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'email' => $this->minutesOnlyThrottleMessage($seconds),
+            'email' => trans('auth.throttle', [
+                'seconds' => $seconds,
+                'minutes' => ceil($seconds / 60),
+            ]),
         ]);
     }
 
@@ -139,42 +121,5 @@ class LoginRequest extends FormRequest
             $email = 'unknown';
         }
         return Str::transliterate(Str::lower($email).'|'.$this->ip());
-    }
-
-    private function registerFailedAttempt(?User $user): void
-    {
-        if (!$user) {
-            return;
-        }
-
-        $failedAttempts = (int) $user->failed_login_attempts + 1;
-        $user->failed_login_attempts = $failedAttempts;
-
-        if ($failedAttempts >= self::MAX_LOGIN_ATTEMPTS) {
-            $user->locked_until = Carbon::now()->addMinutes(self::ACCOUNT_LOCK_MINUTES);
-            $user->failed_login_attempts = 0;
-        }
-
-        $user->save();
-    }
-
-    private function clearFailedAttempts(User $user): void
-    {
-        if ($user->failed_login_attempts === 0 && !$user->locked_until) {
-            return;
-        }
-
-        $user->failed_login_attempts = 0;
-        $user->locked_until = null;
-        $user->save();
-    }
-
-    private function minutesOnlyThrottleMessage(int $seconds): string
-    {
-        $minutes = max(1, (int) ceil($seconds / 60));
-
-        return __('Too many login attempts. Please try again in :minutes minutes.', [
-            'minutes' => $minutes,
-        ]);
     }
 }

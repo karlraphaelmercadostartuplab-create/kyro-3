@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Permission\Models\Permission as ModelsPermission;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Str;
@@ -41,8 +40,6 @@ class User extends Authenticatable implements MustVerifyEmail
             'storage_limit',
             'is_disable',
             'is_enable_login',
-            'failed_login_attempts',
-            'locked_until',
             'creator_id',
             'created_by',
             'active_status',
@@ -70,7 +67,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'locked_until' => 'datetime',
         ];
     }
 
@@ -124,11 +120,6 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsTo(User::class, 'created_by');
     }
-    public function passwordHistories(): HasMany
-    {
-        return $this->hasMany(PasswordHistory::class);
-    }
-
 
     public static function CompanySetting($user_id)
     {
@@ -308,6 +299,3 @@ class User extends Authenticatable implements MustVerifyEmail
         }
     }
 }
-
-
-
