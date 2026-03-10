@@ -2,7 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton } from '@/components/ui/sidebar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, LayoutGrid } from 'lucide-react';
 import { NavItem } from '@/types';
 
 export function NavMain({ items = [], searchQuery = "" }: { items: NavItem[], searchQuery?: string }) {
@@ -26,7 +26,18 @@ export function NavMain({ items = [], searchQuery = "" }: { items: NavItem[], se
         }, [] as NavItem[]);
     };
 
-    const filteredItems = filterItems(items, searchQuery);
+    const hasDashboardItem = items.some((item) => item.href === route('dashboard') || item.name === 'dashboard');
+    const normalizedItems = hasDashboardItem
+        ? items
+        : [{
+            title: 'Dashboard',
+            href: route('dashboard'),
+            icon: LayoutGrid,
+            name: 'dashboard',
+            order: 1,
+        }, ...items];
+
+    const filteredItems = filterItems(normalizedItems, searchQuery);
 
     // Helper function to check if any child is active (recursive for nested children)
     const isChildActive = (children: NavItem[]): boolean => {

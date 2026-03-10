@@ -158,8 +158,10 @@ export const allMenuItems = (): NavItem[] => {
     const finalMenuItems = filterByPermission(sortedMenuItems, userPermissions);
 
     const accountDashboardRoles = ['staff', 'client', 'vendor', 'auditor'];
-    const isAccountDashboardRole = accountDashboardRoles.includes(auth?.user?.type)
-        || userRoles.some((role: string) => accountDashboardRoles.includes(role));
+    const normalizedUserType = String(auth?.user?.type || '').toLowerCase();
+    const normalizedUserRoles = userRoles.map((role: string) => String(role).toLowerCase());
+    const isAccountDashboardRole = accountDashboardRoles.includes(normalizedUserType)
+        || normalizedUserRoles.some((role: string) => accountDashboardRoles.includes(role));
     const isInAccountSection = page.url?.startsWith('/account');
     const hasDashboardItem = finalMenuItems.some(item => item.href === route('dashboard'));
 

@@ -2,8 +2,8 @@
 
 import * as React from "react"
 import {
-  Command,
-  Frame, Home,
+  Home,
+  LayoutGrid,
   LifeBuoy,
   Send,
   SquareTerminal,
@@ -22,18 +22,14 @@ import {
   SidebarMenuItem,
   SidebarInput,
 } from "@/components/ui/sidebar"
-import {Link, usePage} from "@inertiajs/react";
-import {PageProps} from "@/types";
+import { Link, usePage } from "@inertiajs/react";
+import { PageProps } from "@/types";
 import { allMenuItems } from "@/utils/menu";
-import { useTranslation } from 'react-i18next';
 import { useBrand } from "@/contexts/brand-context";
 
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-    const page = usePage<PageProps>();
-    const { auth } = page.props;
-    const { t } = useTranslation();
     const { settings, getCompleteSidebarProps, getPreviewUrl } = useBrand();
     const [searchQuery, setSearchQuery] = React.useState("");
 
@@ -41,27 +37,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const menuItems = allMenuItems();
 
     const accountDashboardRoles = ['staff', 'client', 'vendor', 'auditor'];
-    const userRoles = ((auth?.user as any)?.roles || []) as string[];
-    const isAccountDashboardRole = accountDashboardRoles.includes(auth?.user?.type)
-      || userRoles.some((role: string) => accountDashboardRoles.includes(role));
-    const isInAccountSection = page.url?.startsWith('/account');
-    const shouldShowDashboard = isAccountDashboardRole || isInAccountSection;
+    const normalizedUserType = String(auth?.user?.type || '').toLowerCase();
+    const normalizedUserRoles = ((auth?.user as any)?.roles || [])
+      .map((role: any) => String(typeof role === 'string' ? role : role?.name || '').toLowerCase())
+      .filter(Boolean);
+    const isAccountDashboardRole = accountDashboardRoles.includes(normalizedUserType)
+      || normalizedUserRoles.some((role: string) => accountDashboardRoles.includes(role));
+    const shouldShowDashboardButton = isAccountDashboardRole || isInAccountSection;
+    const sidebarItems = menuItems.filter((item) => item.name !== 'dashboard');
+    const dashboardPath = new URL(route('dashboard'), window.location.origin).pathname;
+    const isDashboardActive = page.url === dashboardPath;
 
-    const itemsWithoutDashboard = menuItems.filter((item) => (
-      item.href !== route("dashboard")
-      && item.name !== "dashboard"
-      && item.title !== t("Dashboard")
-    ));
-
-    const itemsWithDashboard: NavItem[] = shouldShowDashboard
-      ? [{
-          title: t("Dashboard"),
-          href: route("dashboard"),
-          icon: LayoutGrid,
-          name: "dashboard",
-          order: 1,
-        }, ...itemsWithoutDashboard]
-      : menuItems;
 
     return (
     <Sidebar
@@ -134,7 +120,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={allMenuItems()} searchQuery={searchQuery} />
+        {shouldShowDashboardButton && (
+          <div className="px-2 pb-1">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isDashboardActive} tooltip={t('Dashboard')}>
+                  <Link href={route('dashboard')}>
+                    <LayoutGrid />
+                    <span>{t('Dashboard')}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </div>
+        )}
+        <NavMain items={sidebarItems} searchQuery={searchQuery} />
       </SidebarContent>
     </Sidebar>
   )
