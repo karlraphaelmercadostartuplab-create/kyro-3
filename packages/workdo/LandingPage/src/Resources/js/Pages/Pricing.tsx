@@ -214,13 +214,12 @@ export default function Pricing(props: PricingProps) {
                                         <div className="space-y-3">
                                             <div className="flex items-center justify-center py-2 h-10 border-b border-gray-200 mb-3">
                                                 <span className="text-gray-900 font-semibold text-sm">{t("Features")}</span>
-                                                    {t("Features")}
-                                                </span>
+                                                   
                                             </div>
                                             {activeModules.map((module) => (
                                                 <div key={module.module} className="flex items-center justify-center py-2 h-10">
                                                     <span className="text-gray-700 capitalize text-sm">{module.alias}</span>
-                                                    </span>
+                                                    
                                                 </div>
                                             ))}
                                         </div>

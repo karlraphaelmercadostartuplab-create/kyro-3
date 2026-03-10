@@ -154,11 +154,14 @@ export const allMenuItems = (): NavItem[] => {
 
     const finalMenuItems = filterByPermission(sortedMenuItems, userPermissions);
 
-    const isStaffUser = auth?.user?.type === 'staff' || userRoles.includes('staff');
+    const accountDashboardRoles = ['staff', 'client', 'vendor', 'auditor'];
+    const isAccountDashboardRole = accountDashboardRoles.includes(auth?.user?.type)
+        || userRoles.some((role: string) => accountDashboardRoles.includes(role));
     const isInAccountSection = page.url?.startsWith('/account');
-    const hasDashboardItem = finalMenuItems.some(item => item.name === 'dashboard');
+    const hasDashboardItem = finalMenuItems.some(item => item.href === route('dashboard'));
 
-    if ((isStaffUser || isInAccountSection) && !hasDashboardItem) {
+
+    if ((isAccountDashboardRole || isInAccountSection) && !hasDashboardItem) {
         const dashboardMenuItem = sortedMenuItems.find(item => item.name === 'dashboard')
             || getCompanyMenu(t).find(item => item.name === 'dashboard');
 

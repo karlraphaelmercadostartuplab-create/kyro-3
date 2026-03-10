@@ -1,7 +1,4 @@
-"use client"
-
-import * as React from "react"
-import {
+@@ -5,65 +5,80 @@ import {
   Search,
   LayoutGrid,
 } from "lucide-react"
@@ -27,7 +24,8 @@ import { useBrand } from "@/contexts/brand-context";
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-    const { auth } = usePage<PageProps>().props;
+    const page = usePage<PageProps>();
+    const { auth } = page.props;
     const { t } = useTranslation();
     const { settings, getCompleteSidebarProps, getPreviewUrl } = useBrand();
     const [searchQuery, setSearchQuery] = React.useState("");
@@ -35,13 +33,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const sidebarProps = getCompleteSidebarProps();
     const menuItems = allMenuItems();
 
-    const hasDashboardItem = menuItems.some((item) => item.name === "dashboard" || item.href === route("dashboard"));
+    const isStaffUser = auth?.user?.type === "staff" || auth?.roles?.includes("staff");
+    const isInAccountSection = page.url?.startsWith("/account");
+    const hasAccountDashboardRoute = route().has("account.index");
+    const dashboardHref = isInAccountSection && hasAccountDashboardRoute
+      ? route("account.index")
+      : route("dashboard");
 
-    const itemsWithDashboard: NavItem[] = hasDashboardItem
+    const hasDashboardItem = menuItems.some(
+      (item) =>
+        item.name === "dashboard"
+        || item.href === route("dashboard")
+        || (hasAccountDashboardRoute && item.href === route("account.index")),
+    );
+
+    const shouldForceDashboardItem = isStaffUser || isInAccountSection;
+    
+
+    const itemsWithDashboard: NavItem[] = !shouldForceDashboardItem || hasDashboardItem
       ? menuItems
       : [{
           title: t("Dashboard"),
-          href: route("dashboard"),
+          href: dashboardHref,
           icon: LayoutGrid,
           name: "dashboard",
           order: 1,
@@ -118,7 +131,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </div>
       </SidebarHeader>
       <SidebarContent>
-         <NavMain items={itemsWithDashboard} searchQuery={searchQuery} />
+        <NavMain items={allMenuItems()} searchQuery={searchQuery} />
       </SidebarContent>
     </Sidebar>
   )
