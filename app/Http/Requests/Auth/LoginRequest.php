@@ -74,6 +74,15 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if ((string) $this->input('email') !== (string) Auth::user()?->email) {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => trans('auth.failed'),
+            ]);
+        }
+
         // Check if user account is disabled
         $user = Auth::user();
         if ($user && !$user->is_enable_login) {
