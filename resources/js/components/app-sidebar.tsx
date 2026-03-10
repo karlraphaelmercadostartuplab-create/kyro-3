@@ -1,6 +1,13 @@
-@@ -5,65 +5,80 @@ import {
+"use client"
+
+import * as React from "react"
+import {
+  Command,
+  Frame, Home,
+  LifeBuoy,
+  Send,
+  SquareTerminal,
   Search,
-  LayoutGrid,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -16,7 +23,7 @@ import {
   SidebarInput,
 } from "@/components/ui/sidebar"
 import {Link, usePage} from "@inertiajs/react";
-import {NavItem, PageProps} from "@/types";
+import {PageProps} from "@/types";
 import { allMenuItems } from "@/utils/menu";
 import { useTranslation } from 'react-i18next';
 import { useBrand } from "@/contexts/brand-context";
@@ -24,41 +31,12 @@ import { useBrand } from "@/contexts/brand-context";
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-    const page = usePage<PageProps>();
-    const { auth } = page.props;
+    const { auth } = usePage<PageProps>().props;
     const { t } = useTranslation();
     const { settings, getCompleteSidebarProps, getPreviewUrl } = useBrand();
     const [searchQuery, setSearchQuery] = React.useState("");
 
     const sidebarProps = getCompleteSidebarProps();
-    const menuItems = allMenuItems();
-
-    const isStaffUser = auth?.user?.type === "staff" || auth?.roles?.includes("staff");
-    const isInAccountSection = page.url?.startsWith("/account");
-    const hasAccountDashboardRoute = route().has("account.index");
-    const dashboardHref = isInAccountSection && hasAccountDashboardRoute
-      ? route("account.index")
-      : route("dashboard");
-
-    const hasDashboardItem = menuItems.some(
-      (item) =>
-        item.name === "dashboard"
-        || item.href === route("dashboard")
-        || (hasAccountDashboardRoute && item.href === route("account.index")),
-    );
-
-    const shouldForceDashboardItem = isStaffUser || isInAccountSection;
-    
-
-    const itemsWithDashboard: NavItem[] = !shouldForceDashboardItem || hasDashboardItem
-      ? menuItems
-      : [{
-          title: t("Dashboard"),
-          href: dashboardHref,
-          icon: LayoutGrid,
-          name: "dashboard",
-          order: 1,
-        }, ...menuItems];
 
     return (
     <Sidebar
