@@ -20,8 +20,11 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        if(Auth::user()->can('manage-account-dashboard')){
-            $user = Auth::user();
+        $user = Auth::user();
+        $canAccessAccountDashboard = $user->can('manage-account-dashboard')
+            || ($user->type === 'staff' && $user->can('manage-dashboard'));
+
+        if ($canAccessAccountDashboard) {
             $userType = $user->type;
 
             switch ($userType) {
@@ -36,6 +39,7 @@ class DashboardController extends Controller
                     return $this->staffDashboard();
             }
         }
+        
         return Inertia::render('dashboard');
         // return back()->with('error', __('Permission denied'));
     }

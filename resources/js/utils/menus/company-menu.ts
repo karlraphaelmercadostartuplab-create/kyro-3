@@ -4,8 +4,9 @@ import { NavItem } from '@/types';
 export const getCompanyMenu = (t: (key: string) => string): NavItem[] => [
     {
         title: t('Dashboard'),
+        href: route('dashboard'),
         icon: LayoutGrid,
-        permission: 'manage-dashboard',
+        permissionAny: ['manage-dashboard', 'manage-account-dashboard'],
         name: 'dashboard',
         order: 1,
     },

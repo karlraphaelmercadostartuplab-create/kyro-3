@@ -52,10 +52,14 @@ class HomeController extends Controller
 
     private function regularDashboard()
     {
-        if (Module_is_active('Account')) {
+        $user = Auth::user();
+        $canAccessAccountDashboard = $user->can('manage-account-dashboard')
+            || ($user->type === 'staff' && $user->can('manage-dashboard'));
+
+        if (Module_is_active('Account') && $canAccessAccountDashboard) {
             return redirect()->route('account.index');
-        } else {
-            return Inertia::render('dashboard');
+        
         }
+        return Inertia::render('dashboard');
     }
 }   
