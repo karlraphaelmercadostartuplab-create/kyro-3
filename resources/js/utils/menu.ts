@@ -130,7 +130,10 @@ export const allMenuItems = (): NavItem[] => {
     const { auth } = page.props as any;
     const { t } = useTranslation();
     const userPermissions = auth?.user?.permissions || [];
-    const userRoles = auth?.user?.roles || [];
+    const rawUserRoles = auth?.user?.roles || [];
+    const userRoles = rawUserRoles
+        .map((role: any) => typeof role === 'string' ? role : role?.name)
+        .filter(Boolean);
     const activatedPackages = auth?.user?.activatedPackages || [];
 
     const coreMenuItems = getCoreMenuItems(userRoles, t);
