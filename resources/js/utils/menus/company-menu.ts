@@ -6,7 +6,7 @@ export const getCompanyMenu = (t: (key: string) => string): NavItem[] => [
         title: t('Dashboard'),
         href: route('dashboard'),
         icon: LayoutGrid,
-        permissionAny: ['manage-dashboard', 'manage-account-dashboard'],
+        permissionAny: ['dashboard', 'manage-account-dashboard', 'manage-dashboard'],
         name: 'dashboard',
         order: 1,
     },

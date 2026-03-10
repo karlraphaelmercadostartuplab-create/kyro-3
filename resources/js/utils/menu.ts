@@ -102,16 +102,22 @@ const filterByPermission = (items: NavItem[], userPermissions: string[]): NavIte
     return items.filter(item => {
         const hasSinglePermission = item.permission ? userPermissions.includes(item.permission) : false;
         const hasAnyPermission = item.permissionAny?.some(permission => userPermissions.includes(permission)) ?? false;
+        const hasPermissionRules = Boolean(item.permission || item.permissionAny);
+        const isAuthorized = !hasPermissionRules || hasSinglePermission || hasAnyPermission;
 
-        if (item.permission || item.permissionAny) {
-            if (!hasSinglePermission && !hasAnyPermission) {
-                return false;
-            }
+        if (!isAuthorized) {
+            return false;
         }
 
         if (item.children) {
             item.children = filterByPermission(item.children, userPermissions);
-            return item.children.length > 0;
+            // Keep clickable parent links even when none of their children are permitted
+            if (item.children.length > 0) {
+                return true;
+            }
+
+            // Keep clickable parent items even when all of their children are filtered out.
+            return Boolean(item.href);
         }
 
         return true;
@@ -120,7 +126,8 @@ const filterByPermission = (items: NavItem[], userPermissions: string[]): NavIte
 
 // Main function to get filtered menu items
 export const allMenuItems = (): NavItem[] => {
-    const { auth } = usePage().props as any;
+    const page = usePage();
+    const { auth } = page.props as any;
     const { t } = useTranslation();
     const userPermissions = auth?.user?.permissions || [];
     const userRoles = auth?.user?.roles || [];
@@ -147,5 +154,19 @@ export const allMenuItems = (): NavItem[] => {
 
     const finalMenuItems = filterByPermission(sortedMenuItems, userPermissions);
 
+    const isStaffUser = auth?.user?.type === 'staff' || userRoles.includes('staff');
+    const isInAccountSection = page.url?.startsWith('/account');
+    const hasDashboardItem = finalMenuItems.some(item => item.name === 'dashboard');
+
+    if ((isStaffUser || isInAccountSection) && !hasDashboardItem) {
+        const dashboardMenuItem = sortedMenuItems.find(item => item.name === 'dashboard')
+            || getCompanyMenu(t).find(item => item.name === 'dashboard');
+
+        if (dashboardMenuItem) {
+            finalMenuItems.unshift(dashboardMenuItem);
+        }
+    }
+
     return finalMenuItems;
+
 };

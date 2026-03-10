@@ -2,12 +2,8 @@
 
 import * as React from "react"
 import {
-  Command,
-  Frame, Home,
-  LifeBuoy,
-  Send,
-  SquareTerminal,
   Search,
+  LayoutGrid,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -23,7 +19,7 @@ import {
   SidebarInput,
 } from "@/components/ui/sidebar"
 import {Link, usePage} from "@inertiajs/react";
-import {PageProps} from "@/types";
+import {NavItem, PageProps} from "@/types";
 import { allMenuItems } from "@/utils/menu";
 import { useTranslation } from 'react-i18next';
 import { useBrand } from "@/contexts/brand-context";
@@ -37,6 +33,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const [searchQuery, setSearchQuery] = React.useState("");
 
     const sidebarProps = getCompleteSidebarProps();
+    const menuItems = allMenuItems();
+
+    const hasDashboardItem = menuItems.some((item) => item.name === "dashboard" || item.href === route("dashboard"));
+
+    const itemsWithDashboard: NavItem[] = hasDashboardItem
+      ? menuItems
+      : [{
+          title: t("Dashboard"),
+          href: route("dashboard"),
+          icon: LayoutGrid,
+          name: "dashboard",
+          order: 1,
+        }, ...menuItems];
 
     return (
     <Sidebar
@@ -109,7 +118,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={allMenuItems()} searchQuery={searchQuery} />
+         <NavMain items={itemsWithDashboard} searchQuery={searchQuery} />
       </SidebarContent>
     </Sidebar>
   )
