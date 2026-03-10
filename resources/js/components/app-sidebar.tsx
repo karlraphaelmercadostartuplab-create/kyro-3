@@ -31,12 +31,37 @@ import { useBrand } from "@/contexts/brand-context";
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-    const { auth } = usePage<PageProps>().props;
+    const page = usePage<PageProps>();
+    const { auth } = page.props;
     const { t } = useTranslation();
     const { settings, getCompleteSidebarProps, getPreviewUrl } = useBrand();
     const [searchQuery, setSearchQuery] = React.useState("");
 
     const sidebarProps = getCompleteSidebarProps();
+    const menuItems = allMenuItems();
+
+    const accountDashboardRoles = ['staff', 'client', 'vendor', 'auditor'];
+    const userRoles = ((auth?.user as any)?.roles || []) as string[];
+    const isAccountDashboardRole = accountDashboardRoles.includes(auth?.user?.type)
+      || userRoles.some((role: string) => accountDashboardRoles.includes(role));
+    const isInAccountSection = page.url?.startsWith('/account');
+    const shouldShowDashboard = isAccountDashboardRole || isInAccountSection;
+
+    const itemsWithoutDashboard = menuItems.filter((item) => (
+      item.href !== route("dashboard")
+      && item.name !== "dashboard"
+      && item.title !== t("Dashboard")
+    ));
+
+    const itemsWithDashboard: NavItem[] = shouldShowDashboard
+      ? [{
+          title: t("Dashboard"),
+          href: route("dashboard"),
+          icon: LayoutGrid,
+          name: "dashboard",
+          order: 1,
+        }, ...itemsWithoutDashboard]
+      : menuItems;
 
     return (
     <Sidebar
