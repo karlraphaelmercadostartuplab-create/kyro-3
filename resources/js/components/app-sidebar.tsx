@@ -1,5 +1,5 @@
 "use client"
-
+import { useTranslation } from 'react-i18next';
 import * as React from "react"
 import {
   Home,
@@ -29,6 +29,12 @@ import { useBrand } from "@/contexts/brand-context";
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+
+    const { t } = useTranslation();
+
+    const page = usePage<PageProps>();
+    const { auth } = page.props;
+
     const { settings, getCompleteSidebarProps, getPreviewUrl } = useBrand();
     const [searchQuery, setSearchQuery] = React.useState("");
 
@@ -45,6 +51,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       || normalizedUserRoles.some((role: string) => accountDashboardRoles.includes(role));
     const isInAccountSection = page.url?.startsWith('/account');
     const shouldShowDashboardButton = isAccountDashboardRole || isInAccountSection;
+    const isDashboardActive = route().current('dashboard');
 
     const sidebarItems = menuItems.filter((item) => item.name !== 'dashboard' && item.href !== route('dashboard'));
     const dashboardItem = {
@@ -131,20 +138,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {shouldShowDashboardButton && (
-          <div className="px-2 pb-1">
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isDashboardActive} tooltip={t('Dashboard')}>
-                  <Link href={route('dashboard')}>
-                    <LayoutGrid />
-                    <span>{t('Dashboard')}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </div>
-        )}
         <NavMain items={navItems} searchQuery={searchQuery} />
       </SidebarContent>
     </Sidebar>

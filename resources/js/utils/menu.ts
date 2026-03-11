@@ -162,7 +162,7 @@ export const allMenuItems = (): NavItem[] => {
     const normalizedUserRoles = userRoles.map((role: string) => String(role).toLowerCase());
     const isAccountDashboardRole = accountDashboardRoles.includes(normalizedUserType)
         || normalizedUserRoles.some((role: string) => accountDashboardRoles.includes(role));
-    const isInAccountSection = page.url?.startsWith('/account');
+    const isInAccountSection = false;
     const hasDashboardItem = finalMenuItems.some(item => item.href === route('dashboard'));
 
 
