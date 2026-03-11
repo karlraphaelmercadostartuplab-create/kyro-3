@@ -21,8 +21,9 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+        $accountDashboardRoles = ['staff', 'auditor'];
         $canAccessAccountDashboard = $user->can('manage-account-dashboard')
-            || ($user->type === 'staff' && $user->can('manage-dashboard'));
+            || (in_array($user->type, $accountDashboardRoles, true) && $user->can('manage-dashboard'));
 
         if ($canAccessAccountDashboard) {
             $userType = $user->type;
