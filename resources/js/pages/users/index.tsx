@@ -412,8 +412,8 @@ export default function Index() {
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <div className="flex-1">
-                                                        <h3 className="font-semibold text-base text-gray-900">{user.name}</h3>
+                                                    <div className="flex-1 min-w-0">
+                                                        <h3 className="font-semibold text-base text-gray-900 break-words [overflow-wrap:anywhere]">{user.name}</h3>
                                                     </div>
                                                 </div>
 
