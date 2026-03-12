@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { getAdminSetting, getImagePath } from '@/utils/helpers';
 
 interface LandingPreviewProps {
   settings?: any;
@@ -7,220 +8,277 @@ interface LandingPreviewProps {
 
 export function LandingPreview({ settings }: LandingPreviewProps) {
   const { t } = useTranslation();
-  const getSectionData = (key: string) => {
-    return settings?.config_sections?.sections?.[key] || {};
-  };
-  
-  const isSectionVisible = (key: string) => {
-    return settings?.config_sections?.section_visibility?.[key] !== false;
-  };
 
+  const getSectionData = (key: string) => settings?.config_sections?.sections?.[key] || {};
+  const isSectionVisible = (key: string) => settings?.config_sections?.section_visibility?.[key] !== false;
   const colors = settings?.config_sections?.colors || {
     primary: '#10b77f',
     secondary: '#059669',
     accent: '#f59e0b'
   };
+  const sectionOrder = settings?.config_sections?.section_order || [
+    'header',
+    'hero',
+    'stats',
+    'features',
+    'modules',
+    'benefits',
+    'gallery',
+    'cta',
+    'footer'
+  ];
 
-  const sectionOrder = settings?.config_sections?.section_order || 
-    ['header', 'hero', 'stats', 'features', 'modules', 'benefits', 'gallery', 'cta', 'footer'];
+  const headerData = getSectionData('header');
+  const heroData = getSectionData('hero');
+  const statsData = getSectionData('stats');
+  const featuresData = getSectionData('features');
+  const modulesData = getSectionData('modules');
+  const benefitsData = getSectionData('benefits');
+  const galleryData = getSectionData('gallery');
+  const ctaData = getSectionData('cta');
+  const footerData = getSectionData('footer');
 
-  const renderMiniSection = (sectionKey: string) => {
-    if (!isSectionVisible(sectionKey)) return null;
-    
-    const sectionData = getSectionData(sectionKey);
-    
-    switch (sectionKey) {
-      case 'header':
-        return (
-          <div key={sectionKey} className="flex justify-between items-center p-3 bg-white border-b shadow-sm">
-            <div className="text-sm font-bold" style={{ color: colors.primary }}>
-              {sectionData.company_name || settings?.company_name || 'AccountGo SaaS'}
-            </div>
-            <div className="text-xs text-white px-3 py-1 rounded-full shadow-sm transition-colors" style={{ backgroundColor: colors.primary }}>
-              {sectionData.cta_text || t('Get Started')}
-            </div>
-          </div>
-        );
-        
-      case 'hero':
-        return (
-          <div key={sectionKey} className="p-4 text-white text-center relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary}, ${colors.accent})` }}>
-            <div className="absolute inset-0 bg-black/10"></div>
-            <div className="relative z-10">
-              <div className="text-sm font-bold mb-2 leading-tight">
-                {sectionData.title || t('Transform Your Business')}
-              </div>
-              <div className="text-xs opacity-90 mb-3 leading-relaxed">
-                {sectionData.subtitle?.substring(0, 60) || t('Complete business solution')}...
-              </div>
-              <div className="flex gap-2 justify-center">
-                <div className="text-xs bg-white px-3 py-1.5 rounded-full font-medium shadow-lg hover:shadow-xl transition-shadow" style={{ color: colors.primary }}>
-                  {sectionData.primary_button_text || t('Start Trial')}
-                </div>
-                <div className="text-xs border border-white/50 px-3 py-1.5 rounded-full backdrop-blur-sm hover:bg-white/10 transition-colors">
-                  {sectionData.secondary_button_text || t('Login')}
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-        
-      case 'stats':
-        return (
-          <div key={sectionKey} className="p-4 text-white" style={{ background: `linear-gradient(to right, ${colors.primary}, ${colors.secondary})` }}>
-            <div className="grid grid-cols-2 gap-3 text-center">
-              <div className="bg-white/10 rounded-lg p-2 backdrop-blur-sm">
-                <div className="text-sm font-bold">{sectionData.businesses || '10K+'}</div>
-                <div className="text-xs opacity-90">{t('Businesses')}</div>
-              </div>
-              <div className="bg-white/10 rounded-lg p-2 backdrop-blur-sm">
-                <div className="text-sm font-bold">{sectionData.uptime || '99.9%'}</div>
-                <div className="text-xs opacity-90">{t('Uptime')}</div>
-              </div>
-              <div className="bg-white/10 rounded-lg p-2 backdrop-blur-sm">
-                <div className="text-sm font-bold">{sectionData.support || '24/7'}</div>
-                <div className="text-xs opacity-90">{t('Support')}</div>
-              </div>
-              <div className="bg-white/10 rounded-lg p-2 backdrop-blur-sm">
-                <div className="text-sm font-bold">{sectionData.countries || '50+'}</div>
-                <div className="text-xs opacity-90">{t('Countries')}</div>
-              </div>
-            </div>
-          </div>
-        );
-        
-      case 'features':
-        return (
-          <div key={sectionKey} className="p-4 bg-gray-50">
-            <div className="text-sm font-bold text-center mb-3 text-gray-800">
-              {sectionData.title || t('Powerful Features')}
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {(sectionData.features || [{}, {}, {}, {}]).slice(0, 4).map((feature: any, i: number) => (
-                <div key={i} className="bg-white p-2 rounded-lg shadow-sm border hover:shadow-md transition-shadow">
-                  <div className="w-4 h-4 rounded-lg mx-auto mb-1" style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}></div>
-                  <div className="text-xs text-center font-medium text-gray-700">{feature.title?.substring(0, 10) || `Feature ${i+1}`}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-        
-      case 'modules':
-        return (
-          <div key={sectionKey} className="p-2 bg-white">
-            <div className="text-xs font-bold text-center mb-1">
-              {sectionData.title || t('Business Solutions')}
-            </div>
-            <div className="flex gap-1 justify-center">
-              {['ERP', 'CRM', 'HRM', 'POS'].map((module, i) => (
-                <div key={i} className="text-xs bg-gray-100 px-1 py-0.5 rounded">
-                  {module}
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-        
-      case 'benefits':
-        return (
-          <div key={sectionKey} className="p-2 bg-gray-50">
-            <div className="text-xs font-bold text-center mb-1">
-              {sectionData.title || 'Why Choose Us?'}
-            </div>
-            <div className="space-y-1">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-1">
-                  <div className="w-1 h-1 bg-green-500 rounded-full"></div>
-                  <div className="text-xs text-gray-600">{t('Benefit')} {i + 1}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-        
-      case 'gallery':
-        return (
-          <div key={sectionKey} className="p-2 bg-white">
-            <div className="text-xs font-bold text-center mb-1">
-              {sectionData.title || 'Gallery'}
-            </div>
-            <div className="grid grid-cols-3 gap-1">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="aspect-square bg-gray-200 rounded"></div>
-              ))}
-            </div>
-          </div>
-        );
-        
-      case 'cta':
-        return (
-          <div key={sectionKey} className="p-2 text-white text-center" style={{ backgroundColor: colors.primary }}>
-            <div className="text-xs font-bold mb-1">
-              {sectionData.title || t('Ready to Transform?')}
-            </div>
-            <div className="flex gap-1 justify-center">
-              <div className="text-xs bg-white px-2 py-1 rounded" style={{ color: colors.primary }}>
-                {sectionData.primary_button || t('Start Trial')}
-              </div>
-              <div className="text-xs border border-white px-2 py-1 rounded">
-                {sectionData.secondary_button || t('Contact')}
-              </div>
-            </div>
-          </div>
-        );
-        
-      case 'footer':
-        return (
-          <div key={sectionKey} className="p-4 bg-gradient-to-r from-gray-900 to-gray-800 text-white">
-            <div className="grid grid-cols-1 gap-3 text-xs">
-              <div className="text-center border-b border-gray-700 pb-2">
-                <div className="font-bold text-sm" style={{ color: colors.accent }}>
-                  {settings?.company_name || t('AccountGo SaaS')}
-                </div>
-                <div className="text-gray-400 text-xs mt-1">
-                  {sectionData.description?.substring(0, 30) || t('Business solution')}...
-                </div>
-              </div>
-              <div className="flex justify-between text-gray-400">
-                <span>{t('Product')}</span>
-                <span>{t('Company')}</span>
-                <span>{t('Support')}</span>
-              </div>
-            </div>
-          </div>
-        );
-        
-      default:
-        return null;
-    }
-  };
+  const headerLogoPath =
+    getAdminSetting('logo_dark') ||
+    getAdminSetting('logoDark') ||
+    settings?.logo_dark ||
+    settings?.logo ||
+    'logo_dark.png';
+  const footerLogoPath =
+    getAdminSetting('logo_light') ||
+    getAdminSetting('logoLight') ||
+    settings?.logo_light ||
+    'logo_light.png';
+  const logoUrl = getImagePath(headerLogoPath);
+  const footerLogoUrl = getImagePath(footerLogoPath);
+  const companyName = headerData.company_name || settings?.company_name || 'AccountGo SaaS';
+  const heroTitle = heroData.title || t('Transform Your Business with AccountGo SaaS');
+  const heroSubtitle = heroData.subtitle || t('The complete all-in-one business management solution for modern teams.');
+  const heroImage = heroData.image ? getImagePath(heroData.image) : null;
+  const primaryButtonText = heroData.primary_button_text || t('Start Free Trial');
+  const secondaryButtonText = heroData.secondary_button_text || t('Request Demo');
+  const featureItems = (featuresData.features || []).slice(0, 4);
+  const galleryItems = (galleryData.images || []).slice(0, 3);
+
+  const miniFeatures = featureItems.length > 0 ? featureItems : [{}, {}, {}, {}];
+  const miniBenefits = (benefitsData.benefits || []).slice(0, 3);
+  const visibleCount = sectionOrder.filter((key: string) => isSectionVisible(key)).length;
 
   return (
-    <div className="border rounded-lg overflow-hidden bg-white shadow-lg">
-      <div className="px-3 py-2 border-b" style={{ background: `linear-gradient(to right, ${colors.primary}, ${colors.secondary})` }}>
-        <div className="text-sm font-semibold text-white flex items-center gap-2">
-          <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+    <div className="overflow-hidden rounded-lg border bg-white shadow-lg">
+      <div className="border-b px-3 py-2" style={{ background: `linear-gradient(to right, ${colors.primary}, ${colors.secondary})` }}>
+        <div className="flex items-center gap-2 text-sm font-semibold text-white">
+          <div className="h-2 w-2 animate-pulse rounded-full bg-white"></div>
           {t('Live Preview')}
         </div>
       </div>
-      <div className="relative">
-        <div className="absolute top-2 right-2 z-10">
-          <div className="bg-black/20 backdrop-blur-sm rounded-full px-2 py-1">
-            <div className="text-xs text-white font-medium">{t('Mobile View')}</div>
-          </div>
+
+      <div className="relative bg-gray-100 p-3">
+        <div className="absolute right-5 top-5 z-10 rounded-full bg-black/20 px-2 py-1 backdrop-blur-sm">
+          <div className="text-xs font-medium text-white">{t('Mobile View')}</div>
         </div>
-        <div className="max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-          <div className="space-y-0">
-            {sectionOrder.map(sectionKey => renderMiniSection(sectionKey))}
+
+        <div className="mx-auto w-full max-w-[308px] overflow-hidden rounded-[28px] border border-gray-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.18)]">
+          <div className="h-6 bg-gray-100"></div>
+
+          <div className="max-h-[620px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            {isSectionVisible('header') && (
+              <div className="border-b border-gray-200 bg-white px-5 py-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="max-w-[128px]">
+                    {logoUrl ? (
+                      <img src={logoUrl} alt={companyName} className="h-9 w-auto object-contain" />
+                    ) : (
+                      <div className="text-2xl font-bold" style={{ color: colors.primary }}>
+                        {companyName}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md text-gray-500">
+                    <div className="space-y-1.5">
+                      <div className="h-0.5 w-5 rounded-full bg-current"></div>
+                      <div className="h-0.5 w-5 rounded-full bg-current"></div>
+                      <div className="h-0.5 w-5 rounded-full bg-current"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {isSectionVisible('hero') && (
+              <section className="bg-white px-5 py-10">
+                {heroImage && (
+                  <div className="mb-8 overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 shadow-lg">
+                    <img src={heroImage} alt={heroTitle} className="h-36 w-full object-cover" />
+                  </div>
+                )}
+
+                {!heroImage && (
+                  <div className="mb-8 flex h-36 items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 shadow-lg">
+                    <div className="h-20 w-40 rounded-xl" style={{ background: `linear-gradient(135deg, ${colors.primary}20, ${colors.secondary}20)` }}></div>
+                  </div>
+                )}
+
+                <h2 className="mb-6 text-[28px] font-bold leading-[1.18] text-slate-900">
+                  {heroTitle}
+                </h2>
+                <p className="mb-7 text-lg leading-9 text-slate-600">
+                  {heroSubtitle}
+                </p>
+                <div className="space-y-3">
+                  <div className="rounded-full px-5 py-3 text-center text-base font-semibold text-white" style={{ backgroundColor: colors.primary }}>
+                    {primaryButtonText}
+                  </div>
+                  <div className="rounded-full border px-5 py-3 text-center text-base font-semibold text-slate-700" style={{ borderColor: `${colors.primary}55` }}>
+                    {secondaryButtonText}
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {isSectionVisible('stats') && (
+              <section className="px-5 pb-8">
+                <div className="grid grid-cols-2 gap-3 rounded-3xl p-4 text-white" style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}>
+                  <div className="rounded-2xl bg-white/10 p-4 text-center backdrop-blur-sm">
+                    <div className="text-2xl font-bold">{statsData.businesses || '10K+'}</div>
+                    <div className="mt-1 text-xs opacity-90">{t('Businesses')}</div>
+                  </div>
+                  <div className="rounded-2xl bg-white/10 p-4 text-center backdrop-blur-sm">
+                    <div className="text-2xl font-bold">{statsData.uptime || '99.9%'}</div>
+                    <div className="mt-1 text-xs opacity-90">{t('Uptime')}</div>
+                  </div>
+                  <div className="rounded-2xl bg-white/10 p-4 text-center backdrop-blur-sm">
+                    <div className="text-2xl font-bold">{statsData.support || '24/7'}</div>
+                    <div className="mt-1 text-xs opacity-90">{t('Support')}</div>
+                  </div>
+                  <div className="rounded-2xl bg-white/10 p-4 text-center backdrop-blur-sm">
+                    <div className="text-2xl font-bold">{statsData.countries || '50+'}</div>
+                    <div className="mt-1 text-xs opacity-90">{t('Countries')}</div>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {isSectionVisible('features') && (
+              <section className="bg-white px-5 py-8">
+                <h3 className="mb-5 text-center text-[15px] font-bold text-slate-800">
+                  {featuresData.title || t('Powerful Features')}
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {miniFeatures.map((feature: any, index: number) => (
+                    <div key={index} className="rounded-2xl border border-gray-200 bg-white p-4 text-center shadow-sm">
+                      <div className="mx-auto mb-3 h-6 w-6 rounded-full" style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}></div>
+                      <div className="text-xs font-medium leading-5 text-slate-700">
+                        {feature.title || `${t('Feature')} ${index + 1}`}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {isSectionVisible('modules') && (
+              <section className="bg-gray-50 px-5 py-7">
+                <h3 className="mb-4 text-center text-sm font-bold text-slate-800">
+                  {modulesData.title || t('Business Solutions')}
+                </h3>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {['ERP', 'CRM', 'HRM', 'POS'].map((module) => (
+                    <div key={module} className="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm ring-1 ring-gray-200">
+                      {module}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {isSectionVisible('benefits') && (
+              <section className="bg-white px-5 py-7">
+                <h3 className="mb-4 text-center text-sm font-bold text-slate-800">
+                  {benefitsData.title || t('Why Choose Us?')}
+                </h3>
+                <div className="space-y-3">
+                  {(miniBenefits.length > 0 ? miniBenefits : [{}, {}, {}]).map((benefit: any, index: number) => (
+                    <div key={index} className="flex items-start gap-3 rounded-2xl bg-gray-50 px-4 py-3">
+                      <div className="mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full" style={{ backgroundColor: colors.primary }}></div>
+                      <div className="text-sm leading-6 text-slate-600">
+                        {benefit.title || `${t('Benefit')} ${index + 1}`}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {isSectionVisible('gallery') && (
+              <section className="bg-gray-50 px-5 py-7">
+                <h3 className="mb-4 text-center text-sm font-bold text-slate-800">
+                  {galleryData.title || t('Gallery')}
+                </h3>
+                <div className="grid grid-cols-3 gap-2">
+                  {(galleryItems.length > 0 ? galleryItems : [{}, {}, {}]).map((image: any, index: number) => (
+                    <div key={index} className="aspect-square overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200">
+                      {image?.image ? (
+                        <img src={getImagePath(image.image)} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="h-full w-full bg-gradient-to-br from-gray-100 to-gray-200"></div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {isSectionVisible('cta') && (
+              <section className="px-5 py-8 text-white" style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})` }}>
+                <h3 className="mb-3 text-center text-lg font-bold leading-7">
+                  {ctaData.title || t('Ready to Transform?')}
+                </h3>
+                <div className="space-y-3">
+                  <div className="rounded-full bg-white px-4 py-3 text-center text-sm font-semibold" style={{ color: colors.primary }}>
+                    {ctaData.primary_button || t('Start Trial')}
+                  </div>
+                  <div className="rounded-full border border-white/70 px-4 py-3 text-center text-sm font-semibold text-white">
+                    {ctaData.secondary_button || t('Contact')}
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {isSectionVisible('footer') && (
+              <footer className="bg-slate-950 px-5 py-8 text-white">
+                <div className="border-b border-white/10 pb-4 text-center">
+                  {footerLogoUrl ? (
+                    <img
+                      src={footerLogoUrl}
+                      alt={companyName}
+                      className="mx-auto h-12 w-auto object-contain"
+                    />
+                  ) : (
+                    <div className="text-xl font-bold" style={{ color: colors.accent }}>
+                      {companyName}
+                    </div>
+                  )}
+                  <div className="mt-3 text-xs leading-5 text-slate-400">
+                    {footerData.description || t('Business solution for modern teams.')}
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center justify-between text-[11px] text-slate-400">
+                  <span>{t('Product')}</span>
+                  <span>{t('Company')}</span>
+                  <span>{t('Support')}</span>
+                </div>
+              </footer>
+            )}
           </div>
         </div>
       </div>
-      <div className="bg-gray-50 px-3 py-2 border-t">
+
+      <div className="border-t bg-gray-50 px-3 py-2">
         <div className="flex items-center justify-between text-xs text-gray-500">
-          <span>{sectionOrder.filter(key => isSectionVisible(key)).length} {t('sections active')}</span>
-          <div className="flex gap-1">
-            <div className="w-1 h-1 bg-green-500 rounded-full"></div>
+          <span>{visibleCount} {t('sections active')}</span>
+          <div className="flex items-center gap-1">
+            <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
             <span>{t('Live')}</span>
           </div>
         </div>
@@ -228,3 +286,9 @@ export function LandingPreview({ settings }: LandingPreviewProps) {
     </div>
   );
 }
+
+
+
+
+
+
