@@ -62,13 +62,12 @@ export default function Header({ settings }: HeaderProps) {
     const { t } = useTranslation();
     const variant = sectionData.variant || 'header1';
     const config = HEADER_VARIANTS[variant as keyof typeof HEADER_VARIANTS] || HEADER_VARIANTS.header1;
-    
+
     const companyName = sectionData.company_name || settings?.company_name || 'AccountGo SaaS';
     const isAuthenticated = settings?.is_authenticated;
-    const ctaText = isAuthenticated ? 'Dashboard' : (sectionData.cta_text || 'Get Started');
     const colors = settings?.config_sections?.colors || { primary: '#10b77f', secondary: '#059669', accent: '#f59e0b' };
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    
+
     const savedThemeMode = getAdminSetting('theme_mode') || getAdminSetting('themeMode');
     const isDarkDocument = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
     const themeMode = savedThemeMode || (isDarkDocument ? 'dark' : 'light');
@@ -83,19 +82,15 @@ export default function Header({ settings }: HeaderProps) {
 
     const logoPath = preferredLogo || fallbackLogo;
     const logoUrl = logoPath ? getImagePath(logoPath) : null;
-    
-    // Use dynamic navigation items from settings or empty array
+
     const navigationItems = sectionData.navigation_items || [];
-    
-    // Add custom pages to navigation if they exist
     const customPages = settings?.custom_pages || [];
-    const customPageItems = customPages.map(page => ({
+    const customPageItems = customPages.map((page) => ({
         text: page.title,
         href: `/page/${page.slug}`,
         target: '_self'
     }));
-    
-    // Combine navigation items with custom pages
+
     const allNavigationItems = [...navigationItems, ...customPageItems];
     const isOnLandingPage = url === '/' || url.startsWith('/?');
 
@@ -111,7 +106,6 @@ export default function Header({ settings }: HeaderProps) {
             return route('custom-page.show', normalizedHref.replace('/page/', ''));
         }
 
-        // Ensure section anchors work even when currently on a custom page.
         if (normalizedHref.startsWith('#')) {
             return isOnLandingPage ? normalizedHref : route('landing.page') + normalizedHref;
         }
@@ -122,20 +116,26 @@ export default function Header({ settings }: HeaderProps) {
     const renderNavItems = (isMobile = false) => {
         const isTransparentOrGradient = variant === 'header4' || variant === 'header5';
         const textColor = isTransparentOrGradient ? 'text-white' : 'text-gray-600 dark:text-gray-300';
-        const hoverBg = variant === 'header2' ? 'hover:bg-gray-100 hover:shadow-sm dark:hover:bg-white/10' : variant === 'header3' ? 'hover:bg-gray-50 dark:hover:bg-white/10' : isTransparentOrGradient ? 'hover:bg-white/10' : 'hover:bg-gray-50 dark:hover:bg-white/10';
-        
+        const hoverBg = variant === 'header2'
+            ? 'hover:bg-gray-100 hover:shadow-sm dark:hover:bg-white/10'
+            : variant === 'header3'
+                ? 'hover:bg-gray-50 dark:hover:bg-white/10'
+                : isTransparentOrGradient
+                    ? 'hover:bg-white/10'
+                    : 'hover:bg-gray-50 dark:hover:bg-white/10';
+
         return allNavigationItems.map((item) => {
             const isHomeItem = typeof item.text === 'string' && item.text.trim().toLowerCase() === 'home';
             const href = isHomeItem ? route('landing.page') : resolveNavHref(item.href);
             const isAnchorLink = href.includes('#');
             return item.target === '_blank' || isAnchorLink ? (
-                <a 
-                    key={item.text} 
+                <a
+                    key={item.text}
                     href={href}
                     target={item.target === '_blank' ? '_blank' : undefined}
                     rel={item.target === '_blank' ? 'noopener noreferrer' : undefined}
-                    className={isMobile 
-                        ? `block px-4 py-3 text-base font-medium ${textColor} ${hoverBg} rounded-lg transition-all` 
+                    className={isMobile
+                        ? `block px-4 py-3 text-base font-medium ${textColor} ${hoverBg} rounded-lg transition-all`
                         : `${textColor} px-4 py-2 text-sm font-medium ${hoverBg} rounded-lg transition-all duration-200`
                     }
                     style={!isMobile ? { '--hover-color': isTransparentOrGradient ? 'white' : colors.primary } as React.CSSProperties : {}}
@@ -149,11 +149,11 @@ export default function Header({ settings }: HeaderProps) {
                     {item.text}
                 </a>
             ) : (
-                <Link 
-                    key={item.text} 
-                    href={href} 
-                    className={isMobile 
-                        ? `block px-4 py-3 text-base font-medium ${textColor} ${hoverBg} rounded-lg transition-all` 
+                <Link
+                    key={item.text}
+                    href={href}
+                    className={isMobile
+                        ? `block px-4 py-3 text-base font-medium ${textColor} ${hoverBg} rounded-lg transition-all`
                         : `${textColor} px-4 py-2 text-sm font-medium ${hoverBg} rounded-lg transition-all duration-200`
                     }
                     style={!isMobile ? { '--hover-color': isTransparentOrGradient ? 'white' : colors.primary } as React.CSSProperties : {}}
@@ -172,31 +172,31 @@ export default function Header({ settings }: HeaderProps) {
 
     const renderCTAButtons = (isMobile = false) => {
         const enableRegistration = settings?.enable_registration !== false;
-        
+
         if (isAuthenticated) {
             return (
-                <button 
+                <button
                     onClick={() => router.visit(route('dashboard'))}
                     className={`text-white rounded-md font-medium transition-colors ${
-                        isMobile ? 'px-4 py-2 text-sm w-full' : 
+                        isMobile ? 'px-4 py-2 text-sm w-full' :
                         variant === 'header3' ? 'px-3 py-1 text-xs' : 'px-4 py-2 text-sm'
                     }`}
-                    style={{ backgroundColor: colors.primary }} 
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.secondary} 
+                    style={{ backgroundColor: colors.primary }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.secondary}
                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.primary}
                 >
                     {t('Dashboard')}
                 </button>
             );
         }
-        
+
         if (enableRegistration) {
             return (
                 <div className={`flex ${isMobile ? 'flex-col space-y-2' : 'space-x-2'}`}>
-                    <button 
+                    <button
                         onClick={() => router.visit(route('login'))}
                         className={`border rounded-md font-medium transition-colors ${
-                            isMobile ? 'px-4 py-2 text-sm w-full' : 
+                            isMobile ? 'px-4 py-2 text-sm w-full' :
                             variant === 'header3' ? 'px-3 py-1 text-xs' : 'px-4 py-2 text-sm'
                         }`}
                         style={{ borderColor: colors.primary, color: colors.primary }}
@@ -211,14 +211,14 @@ export default function Header({ settings }: HeaderProps) {
                     >
                         {t('Sign In')}
                     </button>
-                    <button 
+                    <button
                         onClick={() => router.visit(route('register'))}
                         className={`text-white rounded-md font-medium transition-colors ${
-                            isMobile ? 'px-4 py-2 text-sm w-full' : 
+                            isMobile ? 'px-4 py-2 text-sm w-full' :
                             variant === 'header3' ? 'px-3 py-1 text-xs' : 'px-4 py-2 text-sm'
                         }`}
-                        style={{ backgroundColor: colors.primary }} 
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.secondary} 
+                        style={{ backgroundColor: colors.primary }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.secondary}
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.primary}
                     >
                         {t('Get Started')}
@@ -226,16 +226,16 @@ export default function Header({ settings }: HeaderProps) {
                 </div>
             );
         }
-        
+
         return (
-            <button 
+            <button
                 onClick={() => router.visit(route('login'))}
                 className={`text-white rounded-md font-medium transition-colors ${
-                    isMobile ? 'px-4 py-2 text-sm w-full' : 
+                    isMobile ? 'px-4 py-2 text-sm w-full' :
                     variant === 'header3' ? 'px-3 py-1 text-xs' : 'px-4 py-2 text-sm'
                 }`}
-                style={{ backgroundColor: colors.primary }} 
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.secondary} 
+                style={{ backgroundColor: colors.primary }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.secondary}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.primary}
             >
                 {t('Sign In')}
@@ -272,17 +272,17 @@ export default function Header({ settings }: HeaderProps) {
                             companyName
                         )}
                     </Link>
-                    
+
                     <div className={config.desktop}>
                         {renderNavItems()}
                         {sectionData?.enable_pricing_link !== false && (
-                            <Link 
-                                href={route("pricing.page")}
+                            <Link
+                                href={route('pricing.page')}
                                 className={`px-4 py-2 text-sm font-medium transition-all duration-200 rounded-lg ${
-                                    variant === 'header4' || variant === 'header5' 
-                                        ? 'text-white hover:bg-white/10' 
-                                        : variant === 'header2' 
-                                             ? 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 hover:shadow-sm dark:hover:bg-white/10'
+                                    variant === 'header4' || variant === 'header5'
+                                        ? 'text-white hover:bg-white/10'
+                                        : variant === 'header2'
+                                            ? 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 hover:shadow-sm dark:hover:bg-white/10'
                                             : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/10'
                                 }`}
                                 onMouseEnter={(e) => {
@@ -297,10 +297,10 @@ export default function Header({ settings }: HeaderProps) {
                         )}
                         {renderCTAButtons()}
                     </div>
-                    
-                    <button 
+
+                    <button
                         className={config.mobile}
-                        onMouseEnter={(e) => e.currentTarget.style.color = colors.primary} 
+                        onMouseEnter={(e) => e.currentTarget.style.color = colors.primary}
                         onMouseLeave={(e) => e.currentTarget.style.color = ''}
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                     >
@@ -308,20 +308,20 @@ export default function Header({ settings }: HeaderProps) {
                     </button>
                 </div>
             </div>
-            
+
             {mobileMenuOpen && (
                 <div className={config.mobileMenu} style={getMobileMenuStyle()}>
-                    <div className="px-2 pt-2 pb-3 space-y-1">
+                    <div className="space-y-1 px-2 pt-2 pb-3">
                         {renderNavItems(true)}
-                        <div className="px-3 py-2">
-                            {sectionData?.enable_pricing_link !== false && (
-                                <Link 
-                                    href={route("pricing.page")}
-                                    className="block px-3 py-2 text-base font-medium text-gray-600"
-                                >
-                                    {t('Pricing')}
-                                </Link>
-                            )}
+                        {sectionData?.enable_pricing_link !== false && (
+                            <Link
+                                href={route('pricing.page')}
+                                className="block px-4 py-3 text-base font-medium text-gray-600 transition-all rounded-lg hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/10"
+                            >
+                                {t('Pricing')}
+                            </Link>
+                        )}
+                        <div className="px-2 pt-2">
                             {renderCTAButtons(true)}
                         </div>
                     </div>
@@ -330,13 +330,3 @@ export default function Header({ settings }: HeaderProps) {
         </nav>
     );
 }
-
-
-
-
-
-
-
-
-
-
