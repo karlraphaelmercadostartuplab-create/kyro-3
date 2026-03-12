@@ -10,7 +10,7 @@ export const getCompanyMenu = (t: (key: string) => string): NavItem[] => [
         order: 1,
 },
     {
-        title: t('User Management'),
+        title: t('Manage Users'),
         icon: Users,
         permission: 'manage-users',
         order: 10,
@@ -28,7 +28,7 @@ export const getCompanyMenu = (t: (key: string) => string): NavItem[] => [
         ],
     },
     {
-        title: t('Proposal'),
+        title: t('Sales Proposal'),
         href: route('sales-proposals.index'),
         icon: Replace,
         permission: 'manage-sales-proposals',
@@ -95,7 +95,7 @@ export const getCompanyMenu = (t: (key: string) => string): NavItem[] => [
         order: 2940,
     },
     {
-        title: t('Helpdesk'),
+        title: t('Support Tickets'),
         href: route('helpdesk-tickets.index'),
         icon: Headphones,
         permission: 'manage-helpdesk-tickets',

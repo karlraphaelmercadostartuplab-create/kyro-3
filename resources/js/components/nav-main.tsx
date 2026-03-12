@@ -1,25 +1,57 @@
 import { Link, usePage } from '@inertiajs/react';
-import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton } from '@/components/ui/sidebar';
+import { SidebarGroup, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton } from '@/components/ui/sidebar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ChevronDown, LayoutGrid } from 'lucide-react';
 import { NavItem } from '@/types';
+import { useTranslation } from 'react-i18next';
 
-export function NavMain({ items = [], searchQuery = "" }: { items: NavItem[], searchQuery?: string }) {
+const SIDEBAR_LABEL_ALIASES: Record<string, string[]> = {
+    Helpdesk: ['Support Tickets'],
+    Tickets: ['Support Tickets'],
+    'User Management': ['Manage Users'],
+    Proposal: ['Sales Proposal'],
+    Customers: ['Customer'],
+    Accounting: ['Accounting '],
+};
+
+const getTranslatedLabel = (title: string, t: (key: string) => string): string => {
+    const candidates = [title, ...(SIDEBAR_LABEL_ALIASES[title] || [])];
+
+    for (const key of candidates) {
+        const translated = t(key);
+        if (translated !== key) {
+            return translated;
+        }
+    }
+
+    return t(title);
+};
+
+const translateItems = (items: NavItem[], t: (key: string) => string): NavItem[] => {
+    return items.map((item) => ({
+        ...item,
+        title: getTranslatedLabel(item.title, t),
+        children: item.children ? translateItems(item.children, t) : item.children,
+    }));
+};
+
+export function NavMain({ items = [], searchQuery = '' }: { items: NavItem[]; searchQuery?: string }) {
     const page = usePage();
+    const { t } = useTranslation();
 
-    // Filter items based on search query
-    const filterItems = (items: NavItem[], query: string): NavItem[] => {
-        if (!query) return items;
-        
-        return items.reduce((acc, item) => {
+    const filterItems = (menuItems: NavItem[], query: string): NavItem[] => {
+        if (!query) return menuItems;
+
+    
+    return menuItems.reduce((acc, item) => {
             const matchesTitle = item.title.toLowerCase().includes(query.toLowerCase());
             const filteredChildren = item.children ? filterItems(item.children, query) : [];
             
             if (matchesTitle || filteredChildren.length > 0) {
                 acc.push({
                     ...item,
-                    children: filteredChildren.length > 0 ? filteredChildren : item.children
+                    children: filteredChildren.length > 0 ? filteredChildren : item.children,
                 });
             }
             return acc;
@@ -29,19 +61,23 @@ export function NavMain({ items = [], searchQuery = "" }: { items: NavItem[], se
     const hasDashboardItem = items.some((item) => item.href === route('dashboard') || item.name === 'dashboard');
     const normalizedItems = hasDashboardItem
         ? items
-        : [{
-            title: 'Dashboard',
-            href: route('dashboard'),
-            icon: LayoutGrid,
-            name: 'dashboard',
-            order: 1,
-        }, ...items];
+        : [
+              {
+                  title: 'Dashboard',
+                  href: route('dashboard'),
+                  icon: LayoutGrid,
+                  name: 'dashboard',
+                  order: 1,
+              },
+              ...items,
+          ];
 
-    const filteredItems = filterItems(normalizedItems, searchQuery);
+    const translatedItems = translateItems(normalizedItems, t);
+    const filteredItems = filterItems(translatedItems, searchQuery);
 
-    // Helper function to check if any child is active (recursive for nested children)
+    
     const isChildActive = (children: NavItem[]): boolean => {
-        return children.some(child => {
+        return children.some((child) => {
             if (child.href) {
                 const childPath = new URL(child.href, window.location.origin).pathname;
                 return page.url === childPath;
@@ -58,15 +94,13 @@ export function NavMain({ items = [], searchQuery = "" }: { items: NavItem[], se
             <SidebarMenu>
                 {filteredItems.map((item) => {
                   const itemPath = item.href ? new URL(item.href, window.location.origin).pathname : '';
-                  const isActive = !!(itemPath && page.url === itemPath);
-                  
-                  // Check if any child is active for parent menus
-                  const hasActiveChild = item.children ? isChildActive(item.children) : false;
-                  const shouldBeActive = isActive || hasActiveChild;
+                    const isActive = !!(itemPath && page.url === itemPath);
+                    const hasActiveChild = item.children ? isChildActive(item.children) : false;
+                    const shouldBeActive = isActive || hasActiveChild;
                     if (item.children && item.children.length > 0) {
                         return (
                             <SidebarMenuItem key={item.title}>
-                                {/* Expanded sidebar - use collapsible */}
+                                
                                 <Collapsible asChild defaultOpen={shouldBeActive} className="group/collapsible group-data-[collapsible=icon]:hidden">
                                     <div>
                                         <CollapsibleTrigger asChild>
@@ -99,11 +133,7 @@ export function NavMain({ items = [], searchQuery = "" }: { items: NavItem[], se
                                                                             <SidebarMenuSub>
                                                                                 {subItem.children.map((subSubItem) => (
                                                                                     <SidebarMenuSubItem key={subSubItem.title}>
-                                                                                        <SidebarMenuSubButton
-                                                                                            asChild
-                                                                                            isActive={!!(subSubItem.href && page.url === new URL(subSubItem.href, window.location.origin).pathname)}
-                                                                                            className="text-sm"
-                                                                                        >
+                                                                                        <SidebarMenuSubButton asChild isActive={!!(subSubItem.href && page.url === new URL(subSubItem.href, window.location.origin).pathname)}>
                                                                                             <Link href={subSubItem.href!}>
                                                                                                 {subSubItem.icon && <subSubItem.icon className="h-3 w-3" />}
                                                                                                 <span>{subSubItem.title}</span>
@@ -121,10 +151,7 @@ export function NavMain({ items = [], searchQuery = "" }: { items: NavItem[], se
                                                     
                                                     return (
                                                         <SidebarMenuSubItem key={subItem.title}>
-                                                            <SidebarMenuSubButton
-                                                                asChild
-                                                                isActive={subItemActive}
-                                                            >
+                                                            <SidebarMenuSubButton asChild isActive={subItemShouldBeActive}>
                                                                 <Link href={subItem.href!}>
                                                                     {subItem.icon && <subItem.icon className="h-4 w-4" />}
                                                                     <span>{subItem.title}</span>
@@ -138,14 +165,11 @@ export function NavMain({ items = [], searchQuery = "" }: { items: NavItem[], se
                                     </div>
                                 </Collapsible>
                                 
-                                {/* Collapsed sidebar - use dropdown */}
+                                
                                 <div className="hidden group-data-[collapsible=icon]:block" onMouseEnter={(e) => e.stopPropagation()} onMouseLeave={(e) => e.stopPropagation()}>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <SidebarMenuButton
-                                                tooltip={item.title}
-                                                isActive={shouldBeActive}
-                                            >
+                                            <SidebarMenuButton tooltip={item.title} isActive={shouldBeActive}>
                                                 {item.icon && <item.icon />}
                                                 <span>{item.title}</span>
                                             </SidebarMenuButton>
@@ -194,11 +218,7 @@ export function NavMain({ items = [], searchQuery = "" }: { items: NavItem[], se
 
                     return (
                         <SidebarMenuItem key={item.title}>
-                            <SidebarMenuButton
-                                asChild
-                                isActive={shouldBeActive}
-                tooltip={item.title}
-                            >
+                            <SidebarMenuButton asChild isActive={shouldBeActive} tooltip={item.title}>
                                 <Link href={item.href!}>
                                     {item.icon && <item.icon />}
                                     <span>{item.title}</span>
