@@ -41,17 +41,6 @@ export default function Show({ page, landingPageSettings }: ShowProps) {
         secondary: '#059669',
         accent: '#065f46'
     };
-
-    const normalizedContent = page.content
-        .replace(
-            /color-mix\(in\s+srgb,\s*var\(--color-primary\)\s*\d+%,\s*white\)/gi,
-            'color-mix(in srgb, var(--color-primary) 10%, #020617)'
-        )
-        .replace(
-            /background-color:\s*#f3f4f6/gi,
-            'background-color: color-mix(in srgb, var(--color-primary) 10%, #020617); border: 1px solid rgba(148, 163, 184, 0.25)'
-        );
-
     return (
         <div className="landing-theme min-h-screen bg-background text-foreground" style={{
             '--color-primary': colorScheme.primary,
@@ -73,10 +62,10 @@ export default function Show({ page, landingPageSettings }: ShowProps) {
                         </h1>
                     </div>
                     
-                    <div className="prose prose-lg max-w-none">
+                    <div className="prose prose-lg max-w-none dark:prose-invert">
                         <div 
-                           dangerouslySetInnerHTML={{ __html: normalizedContent }}
-                            className="landing-content text-gray-700 leading-relaxed"
+                           dangerouslySetInnerHTML={{ __html: page.content }}
+                            className="landing-content text-gray-700 leading-relaxed dark:text-gray-300"
                         />
                     </div>
                 </div>

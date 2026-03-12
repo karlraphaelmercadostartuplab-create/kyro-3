@@ -1,6 +1,6 @@
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { getAdminSetting, getImagePath } from '@/utils/helpers';
 import { useTranslation } from 'react-i18next';
 
@@ -57,6 +57,7 @@ const HEADER_VARIANTS = {
 };
 
 export default function Header({ settings }: HeaderProps) {
+    const { url } = usePage();
     const sectionData = settings?.config_sections?.sections?.header || {};
     const { t } = useTranslation();
     const variant = sectionData.variant || 'header1';
@@ -96,6 +97,27 @@ export default function Header({ settings }: HeaderProps) {
     
     // Combine navigation items with custom pages
     const allNavigationItems = [...navigationItems, ...customPageItems];
+    const isOnLandingPage = url === '/' || url.startsWith('/?');
+
+    const resolveNavHref = (rawHref?: string) => {
+        if (!rawHref) return route('landing.page');
+        const normalizedHref = rawHref.trim();
+
+        if (normalizedHref === '/' || normalizedHref.toLowerCase() === 'home') {
+            return route('landing.page');
+        }
+
+        if (normalizedHref.startsWith('/page/')) {
+            return route('custom-page.show', normalizedHref.replace('/page/', ''));
+        }
+
+        // Ensure section anchors work even when currently on a custom page.
+        if (normalizedHref.startsWith('#')) {
+            return isOnLandingPage ? normalizedHref : route('landing.page') + normalizedHref;
+        }
+
+        return normalizedHref;
+    };
 
     const renderNavItems = (isMobile = false) => {
         const isTransparentOrGradient = variant === 'header4' || variant === 'header5';
@@ -103,13 +125,15 @@ export default function Header({ settings }: HeaderProps) {
         const hoverBg = variant === 'header2' ? 'hover:bg-gray-100 hover:shadow-sm dark:hover:bg-white/10' : variant === 'header3' ? 'hover:bg-gray-50 dark:hover:bg-white/10' : isTransparentOrGradient ? 'hover:bg-white/10' : 'hover:bg-gray-50 dark:hover:bg-white/10';
         
         return allNavigationItems.map((item) => {
-            const href = item.href?.startsWith('/page/') ? route('custom-page.show', item.href.replace('/page/', '')) : item.href;
-            return item.target === '_blank' ? (
+            const isHomeItem = typeof item.text === 'string' && item.text.trim().toLowerCase() === 'home';
+            const href = isHomeItem ? route('landing.page') : resolveNavHref(item.href);
+            const isAnchorLink = href.includes('#');
+            return item.target === '_blank' || isAnchorLink ? (
                 <a 
                     key={item.text} 
                     href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    target={item.target === '_blank' ? '_blank' : undefined}
+                    rel={item.target === '_blank' ? 'noopener noreferrer' : undefined}
                     className={isMobile 
                         ? `block px-4 py-3 text-base font-medium ${textColor} ${hoverBg} rounded-lg transition-all` 
                         : `${textColor} px-4 py-2 text-sm font-medium ${hoverBg} rounded-lg transition-all duration-200`
@@ -306,3 +330,13 @@ export default function Header({ settings }: HeaderProps) {
         </nav>
     );
 }
+
+
+
+
+
+
+
+
+
+

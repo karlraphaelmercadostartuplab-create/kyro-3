@@ -76,28 +76,28 @@ export default function Gallery({ settings }: GalleryProps) {
 
     const renderSlider = () => (
         <div className="relative max-w-6xl mx-auto">
-            <div className="overflow-hidden rounded-xl shadow-2xl">
+            <div className="overflow-hidden rounded-xl shadow-2xl bg-white aspect-[4/3] sm:aspect-[16/10] lg:aspect-[16/9]">
                 <img 
                     src={galleryImages[currentImageIndex]?.startsWith('http') ? galleryImages[currentImageIndex] : getImagePath(galleryImages[currentImageIndex] || '')} 
                     alt={`Gallery image ${currentImageIndex + 1}`}
-                    className="w-full h-[500px] md:h-[600px] object-fill"
+                    className="w-full h-full object-contain"
                 />
             </div>
             
             <button 
                 onClick={previousImage}
-                className="absolute left-6 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-3 rounded-full shadow-xl transition-all hover:scale-110"
+                className="absolute left-3 sm:left-6 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-2 sm:p-3 rounded-full shadow-xl transition-all hover:scale-110"
             >
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
             </button>
             
             <button 
                 onClick={nextImage}
-                className="absolute right-6 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-3 rounded-full shadow-xl transition-all hover:scale-110"
+                className="absolute right-3 sm:right-6 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-2 sm:p-3 rounded-full shadow-xl transition-all hover:scale-110"
             >
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
             </button>
@@ -167,20 +167,20 @@ export default function Gallery({ settings }: GalleryProps) {
 
     const renderCarousel = () => (
         <div className="relative">
-            <div className="flex space-x-8 overflow-x-auto pb-8 px-4 scrollbar-hide snap-x snap-mandatory">
+            <div className="flex gap-4 sm:gap-6 lg:gap-8 overflow-x-auto pb-6 sm:pb-8 px-1 sm:px-4 scrollbar-hide snap-x snap-mandatory">
                 {galleryImages.map((image, index) => (
-                    <div key={index} className="flex-shrink-0 w-96 h-80 relative overflow-hidden rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 snap-center group">
+                    <div key={index} className="flex-shrink-0 w-[85vw] sm:w-[24rem] md:w-[28rem] aspect-[4/3] sm:aspect-[16/10] relative overflow-hidden rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-500 snap-center group bg-white">
                         <img
                             src={image?.startsWith('http') ? image : getImagePath(image || '')}
                             alt={`Gallery image ${index + 1}`}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                        <div className="absolute bottom-6 left-6 right-6">
-                            <div className="text-white text-xl font-bold mb-2">{t('Gallery')} {index + 1}</div>
+                        <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 right-4 sm:right-6">
+                            <div className="text-white text-lg sm:text-xl font-bold mb-2">{t('Gallery')} {index + 1}</div>
                             <div className="w-12 h-1 rounded-full transition-all duration-300" style={{ backgroundColor: colors.primary }}></div>
                         </div>
-                        <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white font-semibold">
+                        <div className="absolute top-3 sm:top-4 right-3 sm:right-4 w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white font-semibold">
                             {index + 1}
                         </div>
                     </div>
@@ -356,3 +356,4 @@ export default function Gallery({ settings }: GalleryProps) {
         </section>
     );
 }
+

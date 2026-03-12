@@ -250,8 +250,15 @@
 .dark .landing-theme .landing-content [style*="background-color:#f8f9fa"],
 .dark .landing-theme .landing-content [style*="background-color: #f8f9fa"],
 .dark .landing-theme .landing-content [style*="background-color:#F8F9FA"],
-.dark .landing-theme .landing-content [style*="background-color: #F8F9FA"] {
+.dark .landing-theme .landing-content [style*="background-color: #F8F9FA"],
+.dark .landing-theme .landing-content [style*="background-color:#f3f4f6"],
+.dark .landing-theme .landing-content [style*="background-color: #f3f4f6"],
+.dark .landing-theme .landing-content [style*="background-color:#F3F4F6"],
+.dark .landing-theme .landing-content [style*="background-color: #F3F4F6"],
+.dark .landing-theme .landing-content [style*="background-color:rgb(243,244,246)"],
+.dark .landing-theme .landing-content [style*="background-color: rgb(243, 244, 246)"] {
     background-color: hsl(var(--card)) !important;
     color: hsl(var(--card-foreground)) !important;
     border-color: hsl(var(--border)) !important;
 }
+
