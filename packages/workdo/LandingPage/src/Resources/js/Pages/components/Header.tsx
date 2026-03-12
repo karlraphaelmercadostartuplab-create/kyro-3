@@ -103,7 +103,14 @@ export default function Header({ settings }: HeaderProps) {
         const hoverBg = variant === 'header2' ? 'hover:bg-gray-100 hover:shadow-sm dark:hover:bg-white/10' : variant === 'header3' ? 'hover:bg-gray-50 dark:hover:bg-white/10' : isTransparentOrGradient ? 'hover:bg-white/10' : 'hover:bg-gray-50 dark:hover:bg-white/10';
         
         return allNavigationItems.map((item) => {
-            const href = item.href?.startsWith('/page/') ? route('custom-page.show', item.href.replace('/page/', '')) : item.href;
+            const rawHref = item.href || '';
+            const normalizedHref = rawHref.trim().toLowerCase();
+            const isHomeItem = item.text?.trim().toLowerCase() === 'home' || normalizedHref === '#' || normalizedHref === '#home' || normalizedHref === '/';
+            const href = isHomeItem
+                ? route('landing.page')
+                : rawHref.startsWith('/page/')
+                    ? route('custom-page.show', rawHref.replace('/page/', ''))
+                    : rawHref;
             return item.target === '_blank' ? (
                 <a 
                     key={item.text} 
