@@ -1,5 +1,5 @@
 import { Mail, Phone, MapPin, Globe } from 'lucide-react';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { getAdminSetting, getImagePath } from '@/utils/helpers';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -12,10 +12,10 @@ const FOOTER_VARIANTS = {
     footer1: {
         footer: 'bg-gray-900 text-white py-16',
         container: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8',
-        grid: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8',
+        grid: 'grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-[1.25fr_0.8fr_0.8fr_1.1fr] lg:gap-16',
         companyName: 'text-2xl font-bold mb-4 lg:max-w-[180px] max-w-[140px] inline-block',
-        description: 'text-gray-400 mb-6 leading-relaxed',
-        sectionTitle: 'text-lg font-semibold mb-6 text-white',
+        description: 'text-gray-300 mb-8 max-w-sm leading-relaxed text-[15px]',
+        sectionTitle: 'text-lg font-semibold mb-5 text-white',
         newsletterTitle: 'text-lg font-semibold mb-4 text-white',
         copyright: 'border-t border-gray-700 mt-8 pt-8 text-center text-gray-400',
         layout: 'standard'
@@ -37,7 +37,7 @@ const FOOTER_VARIANTS = {
         grid: 'space-y-16',
         companyName: 'text-4xl font-bold mb-8',
         description: 'text-gray-300 text-xl mb-12 max-w-3xl mx-auto leading-relaxed',
-        sectionTitle: 'text-lg font-semibold mb-6 text-white',
+        sectionTitle: 'text-lg font-semibold mb-5 text-white',
         newsletterTitle: 'text-2xl font-bold mb-6 text-white',
         copyright: 'border-t border-gray-700 mt-16 pt-8 text-gray-400',
         layout: 'centered'
@@ -67,6 +67,7 @@ const FOOTER_VARIANTS = {
 };
 
 export default function Footer({ settings }: FooterProps) {
+    const { url } = usePage();
     const [emailInput, setEmailInput] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -81,8 +82,9 @@ export default function Footer({ settings }: FooterProps) {
     const newsletterTitle = sectionData.newsletter_title || 'Join Our Community';
     const newsletterDescription = sectionData.newsletter_description || 'We build modern web tools to help you jump-start your daily business work.';
     const newsletterButtonText = sectionData.newsletter_button_text || 'Subscribe';
-    const copyrightText = sectionData.copyright_text || `© ${new Date().getFullYear()} ${companyName}. All rights reserved.`;
+    const copyrightText = sectionData.copyright_text || `(c) ${new Date().getFullYear()} ${companyName}. All rights reserved.`;
     const colors = settings?.config_sections?.colors || { primary: '#10b77f', secondary: '#059669', accent: '#f59e0b' };
+    const customPages = settings?.custom_pages || [];
     
     const handleNewsletterSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -135,6 +137,77 @@ export default function Footer({ settings }: FooterProps) {
             };
         }
         return {};
+    };
+
+    const resolveCustomPageRoute = (keywords: string[], fallbackSlug: string) => {
+        const page = customPages.find((entry: any) => {
+            const title = String(entry?.title || '').toLowerCase();
+            const slug = String(entry?.slug || '').toLowerCase();
+            return keywords.some((keyword) => title.includes(keyword) || slug.includes(keyword));
+        });
+
+        return route('custom-page.show', page?.slug || fallbackSlug);
+    };
+
+    const footerNavigationSections = variant === 'footer1'
+        ? [
+            {
+                title: 'Product',
+                links: [
+                    { text: 'Features', href: '#features' },
+                    { text: 'Pricing', href: route('pricing.page') },
+                ],
+            },
+            {
+                title: 'Company',
+                links: [
+                    { text: 'About', href: resolveCustomPageRoute(['about'], 'about-us') },
+                    { text: 'Terms', href: resolveCustomPageRoute(['terms', 'condition'], 'terms-of-conditions') },
+                    { text: 'Privacy', href: resolveCustomPageRoute(['privacy'], 'privacy-policy') },
+                    { text: 'Help Center', href: resolveCustomPageRoute(['help'], 'help-center') },
+                ],
+            },
+        ]
+        : (sectionData.navigation_sections || []);
+    const isOnLandingPage = url === '/' || url.startsWith('/?');
+
+    const resolveFooterHref = (rawHref?: string) => {
+        if (!rawHref) return route('landing.page');
+
+        const normalizedHref = rawHref.trim();
+
+        if (normalizedHref.startsWith('/page/')) {
+            return route('custom-page.show', normalizedHref.replace('/page/', ''));
+        }
+
+        if (normalizedHref.startsWith('#')) {
+            return isOnLandingPage ? normalizedHref : route('landing.page') + normalizedHref;
+        }
+
+        return normalizedHref;
+    };
+
+    const renderFooterLink = (link: any, className: string) => {
+        const href = resolveFooterHref(link.href);
+
+        if (link.target === '_blank' || href.startsWith('#')) {
+            return (
+                <a
+                    href={href}
+                    target={link.target === '_blank' ? '_blank' : undefined}
+                    rel={link.target === '_blank' ? 'noopener noreferrer' : undefined}
+                    className={className}
+                >
+                    {link.text}
+                </a>
+            );
+        }
+
+        return (
+            <Link href={href} className={className}>
+                {link.text}
+            </Link>
+        );
     };
 
     const renderCompanyInfo = () => {
@@ -215,22 +288,14 @@ export default function Footer({ settings }: FooterProps) {
         if (config.layout === 'minimal') {
             return (
                 <div className="flex flex-wrap gap-8">
-                    {sectionData.navigation_sections?.slice(0, 3).map((section: any, index: number) => (
+                    {footerNavigationSections.slice(0, 3).map((section: any, index: number) => (
                         section.links?.length > 0 && (
                             <div key={index} className="min-w-0">
                                 <h3 className={config.sectionTitle}>{section.title}</h3>
                                 <ul className="space-y-2">
                                     {section.links.slice(0, 4).map((link: any, linkIndex: number) => (
                                         <li key={linkIndex}>
-                                            {link.target === '_blank' ? (
-                                                <a href={link.href?.startsWith('/page/') ? route('custom-page.show', link.href.replace('/page/', '')) : link.href} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900 transition-colors text-sm hover:underline">
-                                                    {link.text}
-                                                </a>
-                                            ) : (
-                                                <Link href={link.href?.startsWith('/page/') ? route('custom-page.show', link.href.replace('/page/', '')) : link.href} className="text-gray-600 hover:text-gray-900 transition-colors text-sm hover:underline">
-                                                    {link.text}
-                                                </Link>
-                                            )}
+                                            {renderFooterLink(link, 'text-gray-600 hover:text-gray-900 transition-colors text-sm hover:underline')}
                                         </li>
                                     ))}
                                 </ul>
@@ -244,22 +309,14 @@ export default function Footer({ settings }: FooterProps) {
         if (config.layout === 'centered') {
             return (
                 <div className="flex flex-wrap justify-center gap-12">
-                    {sectionData.navigation_sections?.map((section: any, index: number) => (
+                    {footerNavigationSections.map((section: any, index: number) => (
                         section.links?.length > 0 && (
                             <div key={index}>
                                 <h3 className={config.sectionTitle}>{section.title}</h3>
                                 <ul className="space-y-2">
                                     {section.links.map((link: any, linkIndex: number) => (
                                         <li key={linkIndex}>
-                                            {link.target === '_blank' ? (
-                                                <a href={link.href?.startsWith('/page/') ? route('custom-page.show', link.href.replace('/page/', '')) : link.href} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors text-sm">
-                                                    {link.text}
-                                                </a>
-                                            ) : (
-                                                <Link href={link.href?.startsWith('/page/') ? route('custom-page.show', link.href.replace('/page/', '')) : link.href} className="text-gray-300 hover:text-white transition-colors text-sm">
-                                                    {link.text}
-                                                </Link>
-                                            )}
+                                            {renderFooterLink(link, 'text-gray-300 hover:text-white transition-colors text-sm')}
                                         </li>
                                     ))}
                                 </ul>
@@ -273,22 +330,14 @@ export default function Footer({ settings }: FooterProps) {
         if (config.layout === 'split') {
             return (
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
-                    {sectionData.navigation_sections?.map((section: any, index: number) => (
+                    {footerNavigationSections.map((section: any, index: number) => (
                         section.links?.length > 0 && (
                             <div key={index}>
                                 <h3 className={config.sectionTitle}>{section.title}</h3>
                                 <ul className="space-y-3">
                                     {section.links.map((link: any, linkIndex: number) => (
                                         <li key={linkIndex}>
-                                            {link.target === '_blank' ? (
-                                                <a href={link.href?.startsWith('/page/') ? route('custom-page.show', link.href.replace('/page/', '')) : link.href} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900 transition-colors text-sm">
-                                                    {link.text}
-                                                </a>
-                                            ) : (
-                                                <Link href={link.href?.startsWith('/page/') ? route('custom-page.show', link.href.replace('/page/', '')) : link.href} className="text-gray-600 hover:text-gray-900 transition-colors text-sm">
-                                                    {link.text}
-                                                </Link>
-                                            )}
+                                            {renderFooterLink(link, 'text-gray-600 hover:text-gray-900 transition-colors text-sm')}
                                         </li>
                                     ))}
                                 </ul>
@@ -299,22 +348,16 @@ export default function Footer({ settings }: FooterProps) {
             );
         }
 
-        // Standard and modern layouts
-        return sectionData.navigation_sections?.map((section: any, index: number) => (
+        return footerNavigationSections.map((section: any, index: number) => (
             section.links?.length > 0 && (
                 <div key={index}>
                     <h3 className={config.sectionTitle}>{section.title}</h3>
                     <ul className="space-y-3">
                         {section.links.map((link: any, linkIndex: number) => (
                             <li key={linkIndex}>
-                                {link.target === '_blank' ? (
-                                    <a href={link.href?.startsWith('/page/') ? route('custom-page.show', link.href.replace('/page/', '')) : link.href} target="_blank" rel="noopener noreferrer" className={`transition-all duration-300 text-base ${config.layout === 'modern' ? 'text-white/80 hover:text-white hover:translate-x-2 hover:drop-shadow-lg' : 'text-gray-400 hover:text-white'}`}>
-                                        {link.text}
-                                    </a>
-                                ) : (
-                                    <Link href={link.href?.startsWith('/page/') ? route('custom-page.show', link.href.replace('/page/', '')) : link.href} className={`transition-all duration-300 text-base ${config.layout === 'modern' ? 'text-white/80 hover:text-white hover:translate-x-2 hover:drop-shadow-lg' : 'text-gray-400 hover:text-white'}`}>
-                                        {link.text}
-                                    </Link>
+                                {renderFooterLink(
+                                    link,
+                                    `transition-all duration-300 text-base ${config.layout === 'modern' ? 'text-white/80 hover:text-white hover:translate-x-2 hover:drop-shadow-lg' : 'text-gray-400 hover:text-white'}`
                                 )}
                             </li>
                         ))}
@@ -487,3 +530,7 @@ export default function Footer({ settings }: FooterProps) {
         </footer>
     );
 }
+
+
+
+

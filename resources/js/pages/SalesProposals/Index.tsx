@@ -370,8 +370,8 @@ export default function Index() {
 
             <Card className="shadow-sm">
                 <CardContent className="p-6 border-b bg-gray-50/50">
-                    <div className="flex items-center justify-between gap-4">
-                        <div className="flex-1 max-w-md">
+                    <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                        <div className="w-full xl:max-w-md">
                             <SearchInput
                                 value={filters.search}
                                 onChange={(value) => setFilters({...filters, search: value})}
@@ -379,7 +379,7 @@ export default function Index() {
                                 placeholder={t('Search proposals...')}
                             />
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-3 xl:justify-end">
                             <ListGridToggle
                                 currentView={viewMode}
                                 routeName="sales-proposals.index"
@@ -409,7 +409,7 @@ export default function Index() {
 
                 {showFilters && (
                     <CardContent className="p-6 bg-blue-50/30 border-b">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:grid-cols-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">{t('Customer')}</label>
                                 <Select value={filters.customer_id} onValueChange={(value) => setFilters({...filters, customer_id: value})}>
@@ -448,7 +448,7 @@ export default function Index() {
                                     </SelectContent>
                                 </Select>
                             </div>
-                            <div className="flex items-end gap-2">
+                            <div className="flex flex-wrap items-end gap-2">
                                 <Button onClick={handleFilter} size="sm">{t('Apply')}</Button>
                                 <Button variant="outline" onClick={clearFilters} size="sm">{t('Clear')}</Button>
                             </div>
@@ -458,8 +458,8 @@ export default function Index() {
 
                 <CardContent className="p-0">
                     {viewMode === 'list' ? (
-                        <div className="overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 max-h-[70vh] rounded-none w-full">
-                            <div className="min-w-[1000px]">
+                        <div className="w-full overflow-auto rounded-none scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 max-h-[70vh]">
+                            <div className="min-w-[860px] lg:min-w-[1000px]">
                                 <DataTable
                                     data={proposals?.data || []}
                                     columns={tableColumns}
@@ -697,3 +697,5 @@ export default function Index() {
         </TooltipProvider>
     );
 }
+
+

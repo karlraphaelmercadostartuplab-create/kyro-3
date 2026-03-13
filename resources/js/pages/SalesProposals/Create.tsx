@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { Head, useForm, usePage, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { SalesInvoiceItem } from '@/pages/Sales/types';
 import AuthenticatedLayout from '@/layouts/authenticated-layout';
@@ -27,6 +27,7 @@ export default function Create() {
     const { t } = useTranslation();
     const { customers, warehouses } = usePage<CreateProps>().props;
     const [availableProducts, setAvailableProducts] = useState([]);
+    const hasSubmittedRef = useRef(false);
 
     const { data, setData, post, processing, errors } = useForm({
         invoice_date: new Date().toISOString().split('T')[0],
@@ -78,10 +79,66 @@ export default function Create() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        hasSubmittedRef.current = true;
         post(route('sales-proposals.store'));
     };
 
     const totals = useTaxCalculator(data.items);
+    const warningMessage = t('You have unsaved proposal changes. Are you sure you want to leave this page?');
+    const hasUnsavedChanges = useMemo(() => {
+        const hasDetails =
+            !!data.due_date ||
+            !!data.customer_id ||
+            !!data.warehouse_id ||
+            !!data.payment_terms.trim() ||
+            !!data.notes.trim();
+
+        const hasTouchedItems = data.items.some((item) =>
+            item.product_id > 0 ||
+            Number(item.quantity) !== 1 ||
+            Number(item.unit_price) > 0 ||
+            Number(item.discount_percentage) > 0 ||
+            Number(item.tax_percentage) > 0
+        );
+
+        return hasDetails || hasTouchedItems || data.items.length > 1;
+    }, [data]);
+
+    useEffect(() => {
+        const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+            if (!hasUnsavedChanges || hasSubmittedRef.current) {
+                return;
+            }
+
+            event.preventDefault();
+            event.returnValue = warningMessage;
+        };
+
+        const removeBeforeListener = router.on('before', (event) => {
+            if (!hasUnsavedChanges || hasSubmittedRef.current) {
+                return;
+            }
+
+            if (!window.confirm(warningMessage)) {
+                event.preventDefault();
+            }
+        });
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            removeBeforeListener();
+        };
+    }, [hasUnsavedChanges, warningMessage]);
+
+    const handleCancel = () => {
+        if (hasUnsavedChanges && !window.confirm(warningMessage)) {
+            return;
+        }
+
+        window.history.back();
+    };
 
     return (
         <AuthenticatedLayout
@@ -271,7 +328,7 @@ export default function Create() {
                             <Button
                                 type="button"
                                 variant="outline"
-                                onClick={() => window.history.back()}
+                                onClick={handleCancel}
                             >
                                 {t('Cancel')}
                             </Button>
@@ -288,3 +345,4 @@ export default function Create() {
         </AuthenticatedLayout>
     );
 }
+

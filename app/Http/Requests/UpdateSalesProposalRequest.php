@@ -21,7 +21,7 @@ class UpdateSalesProposalRequest extends FormRequest
             'payment_terms' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|integer|min:1',
+            'items.*.product_id' => 'required|integer|min:1|distinct',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.discount_percentage' => 'nullable|numeric|min:0|max:100',
@@ -38,6 +38,7 @@ class UpdateSalesProposalRequest extends FormRequest
             'customer_id.exists' => __('Selected customer does not exist.'),
             'items.required' => __('At least one item is required.'),
             'items.*.product_id.min' => __('Please select a product for each item.'),
+            'items.*.product_id.distinct' => __('Duplicate products are not allowed in a proposal.'),
             'items.*.quantity.min' => __('Quantity must be at least 1.'),
             'items.*.unit_price.min' => __('Unit price must be 0 or greater.')
         ];

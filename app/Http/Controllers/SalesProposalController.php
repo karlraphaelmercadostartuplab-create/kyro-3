@@ -70,8 +70,15 @@ class SalesProposalController extends Controller
                     $query->where('status', $request->status);
                 }
             }
-            if ($request->search) {
-                $query->where('proposal_number', 'like', '%' . $request->search . '%');
+            if ($request->filled('search')) {
+                $search = trim($request->search);
+
+                $query->where(function ($searchQuery) use ($search) {
+                    $searchQuery->where('proposal_number', 'like', '%' . $search . '%')
+                        ->orWhereHas('customer', function ($customerQuery) use ($search) {
+                            $customerQuery->where('name', 'like', '%' . $search . '%');
+                        });
+                });
             }
             if ($request->date_range) {
                 $dates = explode(' - ', $request->date_range);
@@ -481,3 +488,7 @@ class SalesProposalController extends Controller
         }
     }
 }
+
+
+
+

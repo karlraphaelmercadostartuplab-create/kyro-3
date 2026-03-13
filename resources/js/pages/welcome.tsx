@@ -87,7 +87,7 @@ export default function Welcome({
                             </nav>
                         </header>
 
-                        <main className="mt-6">
+                        <main id="features-section" className="mt-6">
                             <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
                                 <a
                                     href="https://laravel.com/docs"
@@ -478,12 +478,12 @@ export default function Welcome({
                                             </button>
                                         </li>
                                         <li>
-                                            <a
-                                                href="#"
+                                            <button
+                                                onClick={() => scrollToSection("features-section")}
                                                 className="text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white transition"
                                             >
                                                 Features
-                                            </a>
+                                            </button>
                                         </li>
                                         <li>
                                             <a

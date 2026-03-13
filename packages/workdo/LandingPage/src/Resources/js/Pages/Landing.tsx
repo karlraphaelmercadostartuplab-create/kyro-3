@@ -1,5 +1,5 @@
 import { Head, usePage } from '@inertiajs/react';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { getAdminSetting, getImagePath } from '@/utils/helpers';
 import CookieConsent from "@/components/cookie-consent";
 // Import components
@@ -58,6 +58,27 @@ export default function Landing({ settings }: LandingProps) {
     const sectionOrder = settings?.config_sections?.section_order || 
         ['header', 'hero', 'stats', 'features', 'modules', 'benefits', 'gallery', 'cta', 'footer'];
     
+
+    useEffect(() => {
+        const scrollToHash = () => {
+            const hash = window.location.hash.replace('#', '');
+            if (!hash) return;
+
+            window.requestAnimationFrame(() => {
+                const element = document.getElementById(hash);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        };
+
+        scrollToHash();
+        window.addEventListener('hashchange', scrollToHash);
+
+        return () => {
+            window.removeEventListener('hashchange', scrollToHash);
+        };
+    }, []);
     const renderSection = useCallback((sectionKey: string) => {
         if (!isSectionVisible(sectionKey)) return null;
         
