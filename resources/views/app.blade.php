@@ -71,7 +71,11 @@
                     revealTab.type = 'button';
                     revealTab.className = 'kyro-chat-reveal-tab kyro-chat-reveal-tab-hidden';
                     revealTab.setAttribute('aria-label', 'Show chat launcher');
-                    revealTab.innerHTML = '&#128172;';
+                    revealTab.innerHTML = `
+                        <span class="kyro-chat-reveal-tab-label">Show chat</span>
+                        <svg class="kyro-chat-reveal-tab-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                            <path d="M6.5 5.5H17.5C18.6 5.5 19.5 6.4 19.5 7.5V14.5C19.5 15.6 18.6 16.5 17.5 16.5H10.2L6 20.5V16.5H6.5C5.4 16.5 4.5 15.6 4.5 14.5V7.5C4.5 6.4 5.4 5.5 6.5 5.5Z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>`;
 
                     revealTab.addEventListener('click', () => {
                         const el = resolveLauncher();
