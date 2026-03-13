@@ -2,6 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Live chat launcher behavior: auto-dock to side after inactivity */
+.kyro-chat-launcher {
+    transition: transform 0.35s ease, opacity 0.35s ease;
+    will-change: transform;
+}
+
+.kyro-chat-launcher.kyro-chat-docked {
+    transform: translateX(72%);
+    opacity: 0.92;
+}
+
+.kyro-chat-reveal-tab {
+    position: fixed;
+    right: 0;
+    bottom: 96px;
+    z-index: 2147483646;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 64px;
+    border-radius: 12px 0 0 12px;
+    border: none;
+    background: #3b82f6;
+    color: #ffffff;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+    cursor: pointer;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.kyro-chat-reveal-tab:hover {
+    transform: translateX(-2px);
+}
+
+.kyro-chat-reveal-tab.kyro-chat-reveal-tab-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
 @layer base {
     :root {
         --background: 0 0% 100%;
