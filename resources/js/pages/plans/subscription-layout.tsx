@@ -221,7 +221,7 @@ function SubscriptionLayout({ plan, allModules, pricingPeriod, onSubscribe, bank
             {/* Left Side - Plan Info */}
             <div className="lg:col-span-3 space-y-6">
                 {/* Current Plan */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('Plan Details')}</h3>
                     <div className="space-y-3">                         
                         <div className="flex justify-between">
@@ -249,7 +249,7 @@ function SubscriptionLayout({ plan, allModules, pricingPeriod, onSubscribe, bank
                 </div>
 
                 {/* Available Features */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('Available Features')}</h3>
                         <SearchInput
@@ -260,12 +260,12 @@ function SubscriptionLayout({ plan, allModules, pricingPeriod, onSubscribe, bank
                             className="w-48"
                         />
                     </div>
-                    <div className="max-h-64 overflow-y-auto">
+                    <div className="max-h-40 overflow-y-auto">
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">                            
                             {filteredModules.map((module) => (
                                 <div 
                                     key={module.module} 
-                                    className="flex items-center gap-3 p-4 border rounded hover:bg-muted/50"
+                                    className="flex items-center gap-3 p-2 border rounded hover:bg-muted/50"
                                 >
                                     <img src={getPackageFavicon(module.module)} alt="" className="w-8 h-8 border rounded" />
                                     <div className="flex-1">

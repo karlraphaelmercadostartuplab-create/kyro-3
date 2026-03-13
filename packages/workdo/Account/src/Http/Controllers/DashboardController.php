@@ -20,8 +20,12 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        if(Auth::user()->can('manage-account-dashboard')){
-            $user = Auth::user();
+        $user = Auth::user();
+        $accountDashboardRoles = ['staff', 'auditor'];
+        $canAccessAccountDashboard = $user->can('manage-account-dashboard')
+            || (in_array($user->type, $accountDashboardRoles, true) && $user->can('manage-dashboard'));
+
+        if ($canAccessAccountDashboard) {
             $userType = $user->type;
 
             switch ($userType) {
@@ -36,6 +40,7 @@ class DashboardController extends Controller
                     return $this->staffDashboard();
             }
         }
+        
         return Inertia::render('dashboard');
         // return back()->with('error', __('Permission denied'));
     }
@@ -50,7 +55,9 @@ class DashboardController extends Controller
         $totalExpense = Expense::where('created_by', $creatorId)->sum('amount');
         $totalCustomerPayments = CustomerPayment::whereHas('customer', function($q) use ($creatorId) {
             $q->where('created_by', $creatorId);
-        })->sum('payment_amount');
+        })
+        ->where('status', '!=', 'cancelled')
+        ->sum('payment_amount');
         $totalVendorPayments = VendorPayment::whereHas('vendor', function($q) use ($creatorId) {
             $q->where('created_by', $creatorId);
         })->sum('payment_amount');
@@ -109,6 +116,7 @@ class DashboardController extends Controller
                 $customerPayments = CustomerPayment::whereHas('customer', function($q) use ($creatorId) {
                     $q->where('created_by', $creatorId);
                 })
+                ->where('status', '!=', 'cancelled')
                 ->whereMonth('created_at', $date->month)
                 ->whereYear('created_at', $date->year)
                 ->sum('payment_amount');
@@ -238,7 +246,9 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        $totalPayments = CustomerPayment::where('customer_id', $user->id)->sum('payment_amount');
+        $totalPayments = CustomerPayment::where('customer_id', $user->id)
+            ->where('status', '!=', 'cancelled')
+            ->sum('payment_amount');
         $totalRevenues = Revenue::where('created_by', $user->created_by)->sum('amount');
         $paymentCount = CustomerPayment::where('customer_id', $user->id)->count();
 
@@ -259,6 +269,7 @@ class DashboardController extends Controller
                 $monthName = $date->format('M');
 
                 $monthPayments = CustomerPayment::where('customer_id', $user->id)
+                    ->where('status', '!=', 'cancelled')
                     ->whereMonth('created_at', $date->month)
                     ->whereYear('created_at', $date->year)
                     ->sum('payment_amount');

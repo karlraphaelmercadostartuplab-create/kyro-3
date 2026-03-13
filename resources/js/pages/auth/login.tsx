@@ -6,11 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import InputError from "@/components/ui/input-error";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eye, EyeOff } from "lucide-react";
 
 import { useTranslation } from 'react-i18next';
 import { useFormFields } from '@/hooks/useFormFields';
 import { usePageButtons } from '@/hooks/usePageButtons';
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Login({
     status,
@@ -24,13 +24,13 @@ export default function Login({
     isDemo?: boolean;
 }) {
     const { t } = useTranslation();
+    const [showPassword, setShowPassword] = useState(false);
     const { data, setData, post, processing, errors, reset } = useForm({
         email: "",
         password: "",
         remember: false,
         recaptcha_token: null,
     });
-    const [showPassword, setShowPassword] = useState(false);
 
     const formFields = useFormFields('getReCaptchFields', data, setData, errors, 'create', t);
     const loginButtons = usePageButtons('getLoginButtons', { t, isLoading: processing });
@@ -121,11 +121,15 @@ export default function Login({
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-0 top-0 h-full px-3"
-                                tabIndex={-1}
+                                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                aria-label={showPassword ? t('Hide password') : t('Show password')}
                             >
-                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                {showPassword ? (
+                                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                ) : (
+                                    <Eye className="h-4 w-4 text-muted-foreground" />
+                                )}
                             </Button>
                         </div>
                         <InputError message={errors.password} />

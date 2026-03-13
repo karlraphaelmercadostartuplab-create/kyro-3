@@ -8,7 +8,7 @@ export const accountCompanyMenu = (t: (key: string) => string) => [
     {
         title: t('Account Dashboard'),
         href: route('account.index'),
-        permission: 'manage-account-dashboard',
+        permissionAny: ['dashboard', 'manage-dashboard', 'manage-account-dashboard'],
         parent: 'dashboard',
         order: 20,
     },
@@ -19,7 +19,7 @@ export const accountCompanyMenu = (t: (key: string) => string) => [
         order: 400,
         children: [
             {
-                title: t('Customers'),
+                title: t('Customer'),
                 href: route('account.customers.index'),
                 permission: 'manage-customers',
             },

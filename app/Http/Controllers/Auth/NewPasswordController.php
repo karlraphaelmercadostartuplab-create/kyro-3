@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Services\PasswordSecurityService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -47,14 +46,6 @@ class NewPasswordController extends Controller
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user) use ($request) {
-                if (PasswordSecurityService::isPasswordReused($user, $request->password)) {
-                    throw ValidationException::withMessages([
-                        'password' => __('You cannot reuse your current or recent passwords. Please choose a new password.'),
-                    ]);
-                }
-
-                PasswordSecurityService::pushCurrentPasswordToHistory($user);
-
                 $user->forceFill([
                     'password' => Hash::make($request->password),
                     'remember_token' => Str::random(60),

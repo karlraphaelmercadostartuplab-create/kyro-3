@@ -18,7 +18,7 @@ const HERO_VARIANTS = {
         subtitle: 'text-xl text-gray-600 mb-8 leading-relaxed',
         buttons: 'flex flex-col sm:flex-row gap-4',
         primaryBtn: 'text-white px-8 py-3 rounded-lg text-lg font-medium flex items-center transition-all duration-300 shadow-lg hover:shadow-xl',
-        secondaryBtn: 'border-2 border-gray-300 text-gray-700 px-8 py-3 rounded-lg text-lg font-medium hover:bg-gray-50 transition-all duration-300',
+        secondaryBtn: 'appearance-none bg-transparent border-2 border-gray-300 text-gray-700 px-8 py-3 rounded-lg text-lg font-medium hover:bg-gray-50 hover:text-gray-900 transition-all duration-300',
         layout: 'right-split',
         showImage: true
     },
@@ -29,7 +29,7 @@ const HERO_VARIANTS = {
         subtitle: 'text-xl text-gray-600 mb-8',
         buttons: 'flex flex-col sm:flex-row gap-4 justify-center',
         primaryBtn: 'text-white px-8 py-3 rounded-md text-lg font-medium flex items-center justify-center transition-colors',
-        secondaryBtn: 'border border-gray-300 text-gray-700 px-8 py-3 rounded-md text-lg font-medium hover:bg-gray-50',
+        secondaryBtn: 'appearance-none bg-transparent border border-gray-300 text-gray-700 px-8 py-3 rounded-md text-lg font-medium hover:bg-gray-50 hover:text-gray-900',
         layout: 'split',
         showImage: true
     },
@@ -40,7 +40,7 @@ const HERO_VARIANTS = {
         subtitle: 'text-xl md:text-2xl mb-12 max-w-4xl mx-auto opacity-95 leading-relaxed',
         buttons: 'flex flex-col sm:flex-row gap-6 justify-center items-center',
         primaryBtn: 'text-white px-10 py-4 rounded-2xl text-lg font-semibold flex items-center justify-center transition-all duration-300 shadow-2xl hover:shadow-3xl transform hover:-translate-y-1 backdrop-blur-sm',
-        secondaryBtn: 'border-2 border-white/30 text-white px-10 py-4 rounded-2xl text-lg font-semibold hover:bg-white/10 hover:border-white/50 transition-all duration-300 backdrop-blur-sm',
+        secondaryBtn: 'appearance-none bg-transparent border-2 border-white/30 text-white px-10 py-4 rounded-2xl text-lg font-semibold hover:bg-white/10 hover:text-white hover:border-white/50 transition-all duration-300 backdrop-blur-sm',
         layout: 'background',
         showImage: false
     },
@@ -51,7 +51,7 @@ const HERO_VARIANTS = {
         subtitle: 'text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed font-medium',
         buttons: 'flex flex-col sm:flex-row gap-3 justify-center items-center',
         primaryBtn: 'text-white px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md',
-        secondaryBtn: 'text-gray-600 px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-all duration-200 border border-gray-200 hover:border-gray-300',
+        secondaryBtn: 'appearance-none bg-transparent text-gray-600 px-6 py-2.5 rounded-lg text-sm font-semibold hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 border border-gray-200 hover:border-gray-300',
         layout: 'minimal',
         showImage: false
     }

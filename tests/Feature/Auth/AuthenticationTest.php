@@ -30,6 +30,20 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect(route('dashboard', absolute: false));
     }
 
+    public function test_users_can_not_authenticate_with_email_that_has_different_letter_case(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'DeepFreeze@EyeCo.com',
+        ]);
+
+        $this->post('/login', [
+            'email' => 'DeepFREEZE@EyeCo.com',
+            'password' => 'password',
+        ]);
+
+        $this->assertGuest();
+    }
+
     public function test_users_can_not_authenticate_with_invalid_password(): void
     {
         $user = User::factory()->create();

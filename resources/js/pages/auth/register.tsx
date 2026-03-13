@@ -5,19 +5,19 @@ import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler, useEffect, useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Register() {
     const { t } = useTranslation();
+    const [showPassword, setShowPassword] = useState(false);
+    const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
         email: '',
         password: '',
         password_confirmation: '',
     });
-    const [showPassword, setShowPassword] = useState(false);
-    const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
 
     useEffect(() => {
         return () => {
@@ -95,11 +95,15 @@ export default function Register() {
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-0 top-0 h-full px-3"
-                                tabIndex={-1}
+                                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                aria-label={showPassword ? t('Hide password') : t('Show password')}
                             >
-                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                {showPassword ? (
+                                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                ) : (
+                                    <Eye className="h-4 w-4 text-muted-foreground" />
+                                )}
                             </Button>
                         </div>
                         <InputError message={errors.password} />
@@ -126,11 +130,15 @@ export default function Register() {
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => setShowPasswordConfirmation(!showPasswordConfirmation)}
-                                className="absolute right-0 top-0 h-full px-3"
-                                tabIndex={-1}
+                                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                onClick={() => setShowPasswordConfirmation((prev) => !prev)}
+                                aria-label={showPasswordConfirmation ? t('Hide password') : t('Show password')}
                             >
-                                {showPasswordConfirmation ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                {showPasswordConfirmation ? (
+                                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                ) : (
+                                    <Eye className="h-4 w-4 text-muted-foreground" />
+                                )}
                             </Button>
                         </div>
                         <InputError

@@ -28,17 +28,32 @@ class TranslationController extends Controller
             $locale = 'en';
         }
 
-        $layoutDirection = in_array($locale, ['ar', 'he']) ? 'rtl' : 'ltr';
+        $layoutDirection = 'ltr';
+
+        if (auth()->check()) {
+            $savedDirection = Setting::where('key', 'layoutDirection')
+                ->where('created_by', auth()->id())
+                ->value('value');
+
+            if (in_array($savedDirection, ['ltr', 'rtl'], true)) {
+                $layoutDirection = $savedDirection;
+            }
+        }
 
         $translations = json_decode(File::get($path), true) ?? [];
 
         // Merge enabled package translations
-        $enabledPackages = AddOn::where('is_enable', true)->pluck('name');
-        foreach ($enabledPackages as $packageName) {
-            $packageLangFile = base_path("packages/workdo/{$packageName}/src/Resources/lang/{$locale}.json");
-            if (File::exists($packageLangFile)) {
-                $packageTranslations = json_decode(File::get($packageLangFile), true) ?? [];
-                $translations = array_merge($translations, $packageTranslations);
+        $enabledPackages = AddOn::where('is_enable', true)->get(['module', 'name']);
+        foreach ($enabledPackages as $package) {
+            $packageFolders = array_filter([$package->module, $package->name]);
+
+            foreach ($packageFolders as $packageFolder) {
+                $packageLangFile = base_path("packages/workdo/{$packageFolder}/src/Resources/lang/{$locale}.json");
+                if (File::exists($packageLangFile)) {
+                    $packageTranslations = json_decode(File::get($packageLangFile), true) ?? [];
+                    $translations = array_merge($translations, $packageTranslations);
+                    break;
+                }
             }
         }
 
@@ -56,15 +71,7 @@ class TranslationController extends Controller
                 if (auth()->user()->lang !== $locale) {
                     auth()->user()->update(['lang' => $locale]);
 
-                    Setting::updateOrCreate(
-                        [
-                            'key' => 'layoutDirection',
-                            'created_by' => auth()->id()
-                        ],
-                        [
-                            'value' => $layoutDirection
-                        ]
-                    );
+                    
                     Artisan::call('optimize:clear');
                 }
             }

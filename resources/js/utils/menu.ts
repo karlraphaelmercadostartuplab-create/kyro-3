@@ -100,20 +100,24 @@ const groupMenusByParent = (menuItems: NavItem[], packageMenuItems: NavItem[]): 
 // Filter menu items based on permissions
 const filterByPermission = (items: NavItem[], userPermissions: string[]): NavItem[] => {
     return items.filter(item => {
-        if (!item.permission) {
-            if (item.children) {
-                item.children = filterByPermission(item.children, userPermissions);
-            }
-            return true;
-        }
+        const hasSinglePermission = item.permission ? userPermissions.includes(item.permission) : false;
+        const hasAnyPermission = item.permissionAny?.some(permission => userPermissions.includes(permission)) ?? false;
+        const hasPermissionRules = Boolean(item.permission || item.permissionAny);
+        const isAuthorized = !hasPermissionRules || hasSinglePermission || hasAnyPermission;
 
-        if (!userPermissions.includes(item.permission)) {
+        if (!isAuthorized) {
             return false;
         }
 
         if (item.children) {
             item.children = filterByPermission(item.children, userPermissions);
-            return item.children.length > 0;
+            // Keep clickable parent links even when none of their children are permitted
+            if (item.children.length > 0) {
+                return true;
+            }
+
+            // Keep clickable parent items even when all of their children are filtered out.
+            return Boolean(item.href);
         }
 
         return true;
@@ -122,10 +126,14 @@ const filterByPermission = (items: NavItem[], userPermissions: string[]): NavIte
 
 // Main function to get filtered menu items
 export const allMenuItems = (): NavItem[] => {
-    const { auth } = usePage().props as any;
+    const page = usePage();
+    const { auth } = page.props as any;
     const { t } = useTranslation();
     const userPermissions = auth?.user?.permissions || [];
-    const userRoles = auth?.user?.roles || [];
+    const rawUserRoles = auth?.user?.roles || [];
+    const userRoles = rawUserRoles
+        .map((role: any) => typeof role === 'string' ? role : role?.name)
+        .filter(Boolean);
     const activatedPackages = auth?.user?.activatedPackages || [];
 
     const coreMenuItems = getCoreMenuItems(userRoles, t);
@@ -149,5 +157,24 @@ export const allMenuItems = (): NavItem[] => {
 
     const finalMenuItems = filterByPermission(sortedMenuItems, userPermissions);
 
+    const accountDashboardRoles = ['staff', 'client', 'vendor', 'auditor'];
+    const normalizedUserType = String(auth?.user?.type || '').toLowerCase();
+    const normalizedUserRoles = userRoles.map((role: string) => String(role).toLowerCase());
+    const isAccountDashboardRole = accountDashboardRoles.includes(normalizedUserType)
+        || normalizedUserRoles.some((role: string) => accountDashboardRoles.includes(role));
+    const isInAccountSection = false;
+    const hasDashboardItem = finalMenuItems.some(item => item.href === route('dashboard'));
+
+
+    if ((isAccountDashboardRole || isInAccountSection) && !hasDashboardItem) {
+        const dashboardMenuItem = sortedMenuItems.find(item => item.name === 'dashboard')
+            || getCompanyMenu(t).find(item => item.name === 'dashboard');
+
+        if (dashboardMenuItem) {
+            finalMenuItems.unshift(dashboardMenuItem);
+        }
+    }
+
     return finalMenuItems;
+
 };

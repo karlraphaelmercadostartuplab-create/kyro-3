@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Services\PasswordSecurityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,28 +16,29 @@ class PasswordController extends Controller
      */
     public function update(Request $request): RedirectResponse
     {
-        if (Auth::user()->can('change-password-profile')) {
+        if(Auth::user()->can('change-password-profile')){
             $validated = $request->validate([
                 'current_password' => ['required', 'current_password'],
-                'password' => ['required', Password::defaults(), 'confirmed'],
+                'password' => [
+                    'required',
+                    Password::defaults(),
+                    'confirmed',
+                    function (string $attribute, mixed $value, \Closure $fail) use ($request) {
+                        if (Hash::check($value, $request->user()->password)) {
+                            $fail("Password can't be the same as the current password.");
+                        }
+                    },
+                ],
             ]);
 
-            $user = $request->user();
-            if (PasswordSecurityService::isPasswordReused($user, $validated['password'])) {
-                return back()->withErrors([
-                    'password' => __('You cannot reuse your current or recent passwords. Please choose a new password.'),
-                ]);
-            }
-
-            PasswordSecurityService::pushCurrentPasswordToHistory($user);
-
-            $user->update([
+            $request->user()->update([
                 'password' => Hash::make($validated['password']),
             ]);
 
             return back()->with('success', __('Password updated successfully.'));
         }
-
-        return back()->with('error', __('Permission denied'));
+        else{
+            return back()->with('error', __('Permission denied'));
+        }
     }
 }

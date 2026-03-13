@@ -74,6 +74,26 @@
 
     /* Global Dark Mode Fixes */
     .dark {
+          .landing-theme {
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+        }
+
+        .landing-theme .bg-white {
+            background-color: hsl(var(--background));
+        }
+
+        .landing-theme .bg-white\/95 {
+            background-color: hsl(var(--background) / 0.95);
+        }
+
+        .landing-theme .bg-white\/90 {
+            background-color: hsl(var(--background) / 0.9);
+        }
+
+        .landing-theme .bg-white\/80 {
+            background-color: hsl(var(--background) / 0.8);
+        }
         /* Card header/footer specific fixes */
         .bg-gray-50\/50 {
             background-color: rgba(31, 41, 55, 0.5) !important;
@@ -197,4 +217,41 @@
     body {
         @apply bg-background text-foreground;
     }
+}
+/* Landing rich-content dark mode hard overrides (non-nested for reliability) */
+.dark .landing-theme .landing-content .bg-white,
+.dark .landing-theme .landing-content .bg-gray-50,
+.dark .landing-theme .landing-content .bg-gray-100,
+.dark .landing-theme .landing-content .bg-slate-50,
+.dark .landing-theme .landing-content .bg-slate-100,
+.dark .landing-theme .landing-content .bg-neutral-50,
+.dark .landing-theme .landing-content .bg-neutral-100 {
+    background-color: hsl(var(--card)) !important;
+    color: hsl(var(--card-foreground)) !important;
+    border-color: hsl(var(--border)) !important;
+}
+
+.dark .landing-theme .landing-content .text-gray-900,
+.dark .landing-theme .landing-content .text-gray-800,
+.dark .landing-theme .landing-content .text-gray-700,
+.dark .landing-theme .landing-content .text-gray-600,
+.dark .landing-theme .landing-content .text-gray-500 {
+    color: hsl(var(--foreground)) !important;
+}
+
+.dark .landing-theme .landing-content [style*="background-color:#fff"],
+.dark .landing-theme .landing-content [style*="background-color: #fff"],
+.dark .landing-theme .landing-content [style*="background-color:#ffffff"],
+.dark .landing-theme .landing-content [style*="background-color: #ffffff"],
+.dark .landing-theme .landing-content [style*="background-color:#FFF"],
+.dark .landing-theme .landing-content [style*="background-color: #FFF"],
+.dark .landing-theme .landing-content [style*="background-color:#FFFFFF"],
+.dark .landing-theme .landing-content [style*="background-color: #FFFFFF"],
+.dark .landing-theme .landing-content [style*="background-color:#f8f9fa"],
+.dark .landing-theme .landing-content [style*="background-color: #f8f9fa"],
+.dark .landing-theme .landing-content [style*="background-color:#F8F9FA"],
+.dark .landing-theme .landing-content [style*="background-color: #F8F9FA"] {
+    background-color: hsl(var(--card)) !important;
+    color: hsl(var(--card-foreground)) !important;
+    border-color: hsl(var(--border)) !important;
 }

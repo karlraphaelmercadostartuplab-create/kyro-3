@@ -62,7 +62,7 @@ export default function Benefits({ settings }: BenefitsProps) {
                 <div key={index} className="border border-gray-200 rounded-lg overflow-hidden">
                     <button
                         onClick={() => setOpenAccordion(openAccordion === index ? -1 : index)}
-                        className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+                        className="w-full px-6 py-4 text-left flex items-center justify-between text-gray-900 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-100 dark:hover:text-gray-100 dark:hover:bg-gray-800 transition-colors"
                     >
                         <span className="font-semibold text-gray-900">{benefit.title}</span>
                         <ChevronDown className={`h-5 w-5 text-gray-500 transition-transform ${openAccordion === index ? 'rotate-180' : ''}`} />

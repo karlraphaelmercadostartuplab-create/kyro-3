@@ -116,7 +116,7 @@ export default function Pricing({ data, getSectionData, updateSectionData, updat
                             rows={3}
                         />
                     </div>
-
+                    
                     {/* Display Options */}
                     <div className="space-y-4">
                         <Label>{t('Display Options')}</Label>
