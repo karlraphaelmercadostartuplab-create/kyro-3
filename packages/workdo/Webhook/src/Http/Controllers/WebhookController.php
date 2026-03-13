@@ -123,7 +123,7 @@ class WebhookController extends Controller
         }
 
         // Check ownership
-        if ($webhook->created_by !== creatorId()) {
+        if (!$this->isWebhookOwnedByCurrentAccount($webhook)) {
             return back()->with('error', __('Permission denied'));
         }
 
@@ -142,7 +142,7 @@ class WebhookController extends Controller
         }
 
         // Check ownership
-        if ($webhook->created_by !== creatorId()) {
+        if (!$this->isWebhookOwnedByCurrentAccount($webhook)) {
             if (request()->expectsJson()) {
                 return response()->json(['error' => 'Permission denied'], 403);
             }
