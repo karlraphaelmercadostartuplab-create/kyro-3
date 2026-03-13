@@ -8,12 +8,12 @@ import AuthenticatedLayout from "@/layouts/authenticated-layout";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
-import { History, ArrowLeft } from "lucide-react";
+import { History } from "lucide-react";
 import { FilterButton } from '@/components/ui/filter-button';
 import { Pagination } from "@/components/ui/pagination";
 import { SearchInput } from "@/components/ui/search-input";
 import NoRecordsFound from '@/components/no-records-found';
-import { formatDate, formatDateTime } from '@/utils/helpers';
+import { formatDateTime } from '@/utils/helpers';
 
 interface LoginHistoryItem {
     id: number;
@@ -105,8 +105,8 @@ export default function LoginHistory() {
             sortable: true,
             render: (_: any, item: LoginHistoryItem) => (
                 <div>
-                    <div className="font-medium">{item.user.name}</div>
-                    <div className="text-sm text-gray-500">{item.user.email}</div>
+                    <div className="font-medium">{item.user?.name || '-'}</div>
+                    <div className="text-sm text-gray-500">{item.user?.email || '-'}</div>
                 </div>
             )
         },
@@ -120,13 +120,13 @@ export default function LoginHistory() {
             header: t('Location & Device'),
             render: (details: any) => (
                 <div className="text-sm space-y-1">
-                    <div>{details.city ? `${details.city}, ${details.country}` : 'Unknown'}</div>
-                    <div className="text-gray-500">{details.browser_name} on {details.os_name}</div>
-                    <div className="text-gray-500 capitalize">{details.device_type}</div>
-                    {details.isp && <div className="text-gray-500">ISP: {details.isp}</div>}
-                    {details.org && <div className="text-gray-500">Org: {details.org}</div>}
-                    {details.timezone && <div className="text-gray-500">TZ: {details.timezone}</div>}
-                    {details.browser_language && <div className="text-gray-500">Lang: {details.browser_language}</div>}
+                    <div>{details?.city ? `${details.city}, ${details.country}` : 'Unknown'}</div>
+                    <div className="text-gray-500">{details?.browser_name || 'Unknown'} on {details?.os_name || 'Unknown'}</div>
+                    <div className="text-gray-500 capitalize">{details?.device_type || 'Unknown'}</div>
+                    {details?.isp && <div className="text-gray-500">ISP: {details.isp}</div>}
+                    {details?.org && <div className="text-gray-500">Org: {details.org}</div>}
+                    {details?.timezone && <div className="text-gray-500">TZ: {details.timezone}</div>}
+                    {details?.browser_language && <div className="text-gray-500">Lang: {details.browser_language}</div>}
                 </div>
             )
         },
