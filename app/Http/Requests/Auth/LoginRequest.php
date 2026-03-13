@@ -74,7 +74,10 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        if ((string) $this->input('email') !== (string) Auth::user()?->email) {
+        $inputEmail = Str::lower((string) $this->input('email'));
+        $authenticatedEmail = Str::lower((string) Auth::user()?->email);
+
+        if ($inputEmail !== $authenticatedEmail) {
             Auth::logout();
             RateLimiter::hit($this->throttleKey());
 
