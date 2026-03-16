@@ -370,31 +370,30 @@ class MessengerController extends Controller
     public function deleteMessage($messageId)
     {
         $user = Auth::user();
-        if ($user->can('delete-messages')) {  
+        if (!$user->can('manage-messenger')) {
+            return back()->with('error', __('Permission denied'));
+        }
+
             $message = Message::find($messageId);
 
             if (!$message || ($message->from_id !== $user->id && $message->to_id !== $user->id)) {
-                return response()->json(['error' => __('Message not found')], 404);
-            }
+            return response()->json(['error' => __('Message not found')], 404);
+        }
 
             // Mark as deleted by current user
-            if ($message->from_id === $user->id) {
-                $message->deleted_by_sender = true;
-            } else {
-                $message->deleted_by_receiver = true;
-            }
-
-            // If both users deleted, hard delete
-            if ($message->deleted_by_sender && $message->deleted_by_receiver) {
-                $message->delete();
-            } else {
-                $message->save();
-            }
-
-            return response()->json(['success' => true]);
+        if ($message->from_id === $user->id) {
+            $message->deleted_by_sender = true;
         } else {
-            return back()->with('error', __('Permission denied'));
+            $message->deleted_by_receiver = true;
         }
+
+             // If both users deleted, hard delete
+        if ($message->deleted_by_sender && $message->deleted_by_receiver) {
+            $message->delete();
+        } else {
+             $message->save();
+        }
+        return response()->json(['success' => true]);
     }
 
     public function updatePresence(Request $request)

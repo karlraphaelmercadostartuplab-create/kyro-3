@@ -16,8 +16,8 @@ import { getImagePath, getAdminSetting } from '@/utils/helpers';
 
 interface Message {
     id: number | string;
-    sender_id: number;
-    receiver_id: number;
+    sender_id: number | string;
+    receiver_id: number | string;
     message: string;
     body?: string;
     attachment?: string;
@@ -79,6 +79,24 @@ export default function MessengerPage() {
     const messages = pageProps.messages || [];
     const selectedUserId = pageProps.selectedUserId;
     const auth = pageProps.auth;
+
+    const canDeleteMessages = auth.user?.permissions?.includes('delete-messages') || auth.user?.permissions?.includes('manage-messenger');
+
+    const normalizeUserId = (value: number | string | undefined | null): number | null => {
+        if (value === undefined || value === null) return null;
+        const parsed = Number(value);
+        return Number.isNaN(parsed) ? null : parsed;
+    };
+
+    const isCurrentUserMessage = (message: Message): boolean => {
+        const authUserId = normalizeUserId(auth.user?.id);
+        if (authUserId === null) return false;
+
+        const senderId = normalizeUserId(message.sender_id);
+        const nestedSenderId = normalizeUserId(message.sender?.id);
+
+        return senderId === authUserId || nestedSenderId === authUserId;
+    };
 
     const filteredUsers = useMemo(() => {
         const userList = usersState.length > 0 ? usersState : users;
@@ -456,18 +474,46 @@ export default function MessengerPage() {
 
     const confirmDelete = async () => {
         if (!deleteConfirm) return;
+
+        const messageIdToDelete = deleteConfirm.toString();
         
         try {
-            await fetch(route('messenger.delete-message', deleteConfirm), {
+            const response = await fetch(route('messenger.delete-message', deleteConfirm), {
                 method: 'DELETE',
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+
                 }
             });
             
-            setChatMessages(prev => prev.filter(msg => msg.id !== deleteConfirm));
+            if (!response.ok) {
+                throw new Error('Delete request failed');
+            }
+
+            let updatedMessages: Message[] = [];
+            setChatMessages(prev => {
+                updatedMessages = prev.filter(msg => msg.id.toString() !== messageIdToDelete);
+                return updatedMessages;
+            });
+
+            if (selectedUser) {
+                const latestMessage = updatedMessages[updatedMessages.length - 1];
+                setUsersState(prev => prev.map(user =>
+                    user.id === selectedUser.id
+                        ? {
+                            ...user,
+                            last_message: latestMessage
+                                ? { ...latestMessage, body: latestMessage.body ?? latestMessage.message }
+                                : undefined,
+                        }
+                        : user
+                ));
+            }
             setDeleteConfirm(null);
             setShowDeleteDialog(false);
+            setOpenDropdown(null);
         } catch (error) {
             console.error('Failed to delete message:', error);
         }
@@ -875,10 +921,10 @@ export default function MessengerPage() {
                                 )}
                                 <div className="space-y-4 min-h-full">
                                     {chatMessages.length > 0 ? chatMessages.map((message: Message) => {
-                                        const isOwnMessage = message.sender_id === auth.user.id;
+                                        const isOwnMessage = Number(message.sender_id) === Number(auth.user.id);
                                         return (
                                             <div key={message.id} className={`group flex mb-2 items-end gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-                                                {!isOwnMessage && (auth.user?.permissions?.includes('delete-messages')) && (
+                                                {!isOwnMessage && (canDeleteMessages) && (
                                                     <div className="relative opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <Button
                                                             variant="ghost"
@@ -890,7 +936,7 @@ export default function MessengerPage() {
                                                         </Button>
                                                         {openDropdown === message.id && (
                                                             <div className="absolute left-0 top-7 bg-white shadow-xl rounded-lg py-2 min-w-[140px] z-20 border">
-                                                                {auth.user?.permissions?.includes('delete-messages') && (
+                                                                {canDeleteMessages && (
                                                                     <button
                                                                         onClick={() => {
                                                                             handleDeleteMessage(message.id);
@@ -955,7 +1001,7 @@ export default function MessengerPage() {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                {isOwnMessage && (auth.user?.permissions?.includes('edit-messages') || auth.user?.permissions?.includes('delete-messages')) && (
+                                                {isOwnMessage && (auth.user?.permissions?.includes('edit-messages') || canDeleteMessages) && (
                                                     <div className="relative opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <Button
                                                             variant="ghost"
@@ -978,7 +1024,7 @@ export default function MessengerPage() {
                                                                         <Edit className="h-4 w-4 text-blue-500" /> {t('Edit')}
                                                                     </button>
                                                                 )}
-                                                                {auth.user?.permissions?.includes('delete-messages') && (
+                                                                {canDeleteMessages && (
                                                                     <button
                                                                         onClick={() => {
                                                                             handleDeleteMessage(message.id);
@@ -1118,4 +1164,5 @@ export default function MessengerPage() {
             />
         </AuthenticatedLayout>
     );
+
 }
