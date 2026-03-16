@@ -78,6 +78,7 @@ export default function Index() {
     const { t } = useTranslation();
     const { revenues, categories, bankAccounts, chartOfAccounts, filters: initialFilters, auth } = usePage<RevenueIndexProps>().props;
     const urlParams = new URLSearchParams(window.location.search);
+    const canCreateRevenue = auth.user.permissions.includes('create-revenues');
 
     const [filters, setFilters] = useState<RevenueFilters>({
         search: initialFilters?.search || '',
@@ -109,6 +110,10 @@ export default function Index() {
     const [viewingItem, setViewingItem] = useState<Revenue | null>(null);
 
     const openModal = (mode: string, data: Revenue | null = null) => {
+        if (mode === 'add' && !canCreateRevenue) {
+            return;
+        }
+
         setModalState({
             isOpen: true,
             mode,
@@ -339,6 +344,7 @@ export default function Index() {
                         {dropboxBtn.map((button) => (
                             <span key={button.id}>{button.component}</span>
                         ))}
+                        {canCreateRevenue && (
                             <Tooltip delayDuration={0}>
                                 <TooltipTrigger asChild>
                                     <Button size="sm" onClick={() => openModal('add')}>
@@ -349,6 +355,7 @@ export default function Index() {
                                     <p>{t('Create')}</p>
                                 </TooltipContent>
                             </Tooltip>
+                        )}
                     </TooltipProvider>
                 </div>
             }

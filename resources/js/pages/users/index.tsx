@@ -96,6 +96,8 @@ export default function Index() {
         });
     };
 
+    const isUserLoginDisabled = (user: User) => !user.is_enable_login || user.is_disable === 1;
+
     const tableColumns = [
         {
             key: 'avatar',
@@ -155,7 +157,8 @@ export default function Index() {
             header: t('Actions'),
             render: (_: any, user: User) => (
                 <div className="flex gap-1">
-                    {user.is_disable === 1 ? (
+                    <TooltipProvider>
+                    {isUserLoginDisabled(user) && (
                         <Tooltip delayDuration={0}>
                             <TooltipTrigger asChild>
                                 <div className="h-8 w-8 p-0 flex items-center justify-center text-gray-400">
@@ -166,68 +169,66 @@ export default function Index() {
                                 <p>{t('User is disabled')}</p>
                             </TooltipContent>
                         </Tooltip>
-                    ) : (
-                        <TooltipProvider>
-                        {auth.user?.permissions?.includes('impersonate-users') && user.id !== auth.user?.id && (
-                                <Tooltip delayDuration={0}>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => router.post(route('users.impersonate', user.id))}
-                                            className="h-8 w-8 p-0 text-purple-600 hover:text-purple-700"
-                                        >
-                                            <UserCheck className="h-4 w-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>{t('Login As User')}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            )}
-                            {auth.user?.permissions?.includes('change-password-users') && (
-                                <Tooltip delayDuration={0}>
-                                    <TooltipTrigger asChild>
-                                        <Button variant="ghost" size="sm" onClick={() => openModal('change-password', user)} className="h-8 w-8 p-0 text-orange-600 hover:text-orange-700">
-                                            <Key className="h-4 w-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>{t('Change Password')}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            )}
-                            {auth.user?.permissions?.includes('edit-users') && (
-                                <Tooltip delayDuration={0}>
-                                    <TooltipTrigger asChild>
-                                        <Button variant="ghost" size="sm" onClick={() => openModal('edit', user)} className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700">
-                                            <Edit className="h-4 w-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>{t('Edit')}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            )}
-                            {auth.user?.permissions?.includes('delete-users') && (
-                                <Tooltip delayDuration={0}>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => openDeleteDialog(user.id)}
-                                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>{t('Delete')}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            )}
-                        </TooltipProvider>
                     )}
+                    {auth.user?.permissions?.includes('impersonate-users') && user.id !== auth.user?.id && !isUserLoginDisabled(user) && (
+                            <Tooltip delayDuration={0}>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => router.post(route('users.impersonate', user.id))}
+                                        className="h-8 w-8 p-0 text-purple-600 hover:text-purple-700"
+                                    >
+                                        <UserCheck className="h-4 w-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{t('Login As User')}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        )}
+                        {auth.user?.permissions?.includes('change-password-users') && (
+                            <Tooltip delayDuration={0}>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="sm" onClick={() => openModal('change-password', user)} className="h-8 w-8 p-0 text-orange-600 hover:text-orange-700">
+                                        <Key className="h-4 w-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{t('Change Password')}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        )}
+                        {auth.user?.permissions?.includes('edit-users') && (
+                            <Tooltip delayDuration={0}>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="sm" onClick={() => openModal('edit', user)} className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700">
+                                        <Edit className="h-4 w-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{t('Edit')}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        )}
+                        {auth.user?.permissions?.includes('delete-users') && (
+                            <Tooltip delayDuration={0}>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => openDeleteDialog(user.id)}
+                                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{t('Delete')}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        )}
+                    </TooltipProvider>
                 </div>
             )
         }] : [])
@@ -445,8 +446,8 @@ export default function Index() {
                                                         {user.is_enable_login ? t('Enabled') : t('Disabled')}
                                                     </span>
                                                     <div className="flex gap-1">
-
-                                                        {user.is_disable === 1 ? (
+                                                        <TooltipProvider>
+                                                        {isUserLoginDisabled(user) && (
                                                             <Tooltip delayDuration={300}>
                                                                 <TooltipTrigger asChild>
                                                                     <div className="h-8 w-8 p-0 flex items-center justify-center text-gray-400">
@@ -457,68 +458,66 @@ export default function Index() {
                                                                     <p>{t('User is disabled')}</p>
                                                                 </TooltipContent>
                                                             </Tooltip>
-                                                        ) : (
-                                                            <TooltipProvider>
-                                                            {auth.user?.permissions?.includes('impersonate-users') && user.id !== auth.user?.id && (
-                                                                    <Tooltip delayDuration={300}>
-                                                                        <TooltipTrigger asChild>
-                                                                            <Button
-                                                                                variant="ghost"
-                                                                                size="sm"
-                                                                                onClick={() => router.post(route('users.impersonate', user.id))}
-                                                                                className="h-8 w-8 p-0 text-purple-600"
-                                                                            >
-                                                                                <UserCheck className="h-4 w-4" />
-                                                                            </Button>
-                                                                        </TooltipTrigger>
-                                                                        <TooltipContent>
-                                                                            <p>{t('Login As User')}</p>
-                                                                        </TooltipContent>
-                                                                    </Tooltip>
-                                                                )}
-                                                                {auth.user?.permissions?.includes('change-password-users') && (
-                                                                    <Tooltip delayDuration={300}>
-                                                                        <TooltipTrigger asChild>
-                                                                            <Button variant="ghost" size="sm" onClick={() => openModal('change-password', user)} className="h-8 w-8 p-0 text-orange-600">
-                                                                                <Key className="h-4 w-4" />
-                                                                            </Button>
-                                                                        </TooltipTrigger>
-                                                                        <TooltipContent>
-                                                                            <p>{t('Change Password')}</p>
-                                                                        </TooltipContent>
-                                                                    </Tooltip>
-                                                                )}
-                                                                {auth.user?.permissions?.includes('edit-users') && (
-                                                                    <Tooltip delayDuration={300}>
-                                                                        <TooltipTrigger asChild>
-                                                                            <Button variant="ghost" size="sm" onClick={() => openModal('edit', user)} className="h-8 w-8 p-0 text-blue-600">
-                                                                                <Edit className="h-4 w-4" />
-                                                                            </Button>
-                                                                        </TooltipTrigger>
-                                                                        <TooltipContent>
-                                                                            <p>{t('Edit')}</p>
-                                                                        </TooltipContent>
-                                                                    </Tooltip>
-                                                                )}
-                                                                {auth.user?.permissions?.includes('delete-users') && (
-                                                                    <Tooltip delayDuration={300}>
-                                                                        <TooltipTrigger asChild>
-                                                                            <Button
-                                                                                variant="ghost"
-                                                                                size="sm"
-                                                                                onClick={() => openDeleteDialog(user.id)}
-                                                                                className="h-8 w-8 p-0 text-red-600"
-                                                                            >
-                                                                                <Trash2 className="h-4 w-4" />
-                                                                            </Button>
-                                                                        </TooltipTrigger>
-                                                                        <TooltipContent>
-                                                                            <p>{t('Delete')}</p>
-                                                                        </TooltipContent>
-                                                                    </Tooltip>
-                                                                )}
-                                                            </TooltipProvider>
                                                         )}
+                                                        {auth.user?.permissions?.includes('impersonate-users') && user.id !== auth.user?.id && !isUserLoginDisabled(user) && (
+                                                                <Tooltip delayDuration={300}>
+                                                                    <TooltipTrigger asChild>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            onClick={() => router.post(route('users.impersonate', user.id))}
+                                                                            className="h-8 w-8 p-0 text-purple-600"
+                                                                        >
+                                                                            <UserCheck className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        <p>{t('Login As User')}</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            )}
+                                                            {auth.user?.permissions?.includes('change-password-users') && (
+                                                                <Tooltip delayDuration={300}>
+                                                                    <TooltipTrigger asChild>
+                                                                        <Button variant="ghost" size="sm" onClick={() => openModal('change-password', user)} className="h-8 w-8 p-0 text-orange-600">
+                                                                            <Key className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        <p>{t('Change Password')}</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            )}
+                                                            {auth.user?.permissions?.includes('edit-users') && (
+                                                                <Tooltip delayDuration={300}>
+                                                                    <TooltipTrigger asChild>
+                                                                        <Button variant="ghost" size="sm" onClick={() => openModal('edit', user)} className="h-8 w-8 p-0 text-blue-600">
+                                                                            <Edit className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        <p>{t('Edit')}</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            )}
+                                                            {auth.user?.permissions?.includes('delete-users') && (
+                                                                <Tooltip delayDuration={300}>
+                                                                    <TooltipTrigger asChild>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            onClick={() => openDeleteDialog(user.id)}
+                                                                            className="h-8 w-8 p-0 text-red-600"
+                                                                        >
+                                                                            <Trash2 className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        <p>{t('Delete')}</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            )}
+                                                        </TooltipProvider>
                                                     </div>
                                                 </div>
                                             </div>

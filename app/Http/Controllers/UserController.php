@@ -62,7 +62,8 @@ class UserController extends Controller
             }
 
             $validated = $request->validated();
-            $validated['is_enable_login'] = $request->boolean('is_enable_login', true);
+            $validated['is_enable_login'] = filter_var($request->input('is_enable_login', 1), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            $validated['is_enable_login'] = $validated['is_enable_login'] ?? in_array((string) $request->input('is_enable_login', '1'), ['1', 'true', 'on'], true);
 
             $role = Role::find($validated['type']);
             $enableEmailVerification = admin_setting('enableEmailVerification');
@@ -74,6 +75,7 @@ class UserController extends Controller
             $user->password = Hash::make($validated['password']);
             $user->type = Auth::user()->type == 'superadmin' ? 'company' : ($role->name ?? 'staff');
             $user->is_enable_login = $validated['is_enable_login'];
+            $user->is_disable = $validated['is_enable_login'] ? 0 : 1;
             $user->lang = company_setting('defaultLanguage') ?? 'en';
             $user->email_verified_at = $enableEmailVerification === 'on' ? null : now();
             $user->creator_id = Auth::id();
@@ -120,12 +122,14 @@ class UserController extends Controller
     {
         if(Auth::user()->can('edit-users')){
             $validated = $request->validated();
-            $validated['is_enable_login'] = $request->boolean('is_enable_login', true);
+            $validated['is_enable_login'] = filter_var($request->input('is_enable_login', 1), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            $validated['is_enable_login'] = $validated['is_enable_login'] ?? in_array((string) $request->input('is_enable_login', '1'), ['1', 'true', 'on'], true);
 
             $user->name = $validated['name'];
             $user->email = $validated['email'];
             $user->mobile_no = $validated['mobile_no'];
             $user->is_enable_login = $validated['is_enable_login'];
+            $user->is_disable = $validated['is_enable_login'] ? 0 : 1;
             $user->save();
 
             return back()->with('success', __('The user details are updated successfully.'));
@@ -169,8 +173,12 @@ class UserController extends Controller
                 return redirect()->route('users.index')->with('error', __('You cannot login as user yourself'));
             }
 
-            if ($user->created_by !== creatorId()) {
+            if (Auth::user()->type !== 'superadmin' && $user->created_by !== creatorId()) {
                 return redirect()->route('users.index')->with('error', __('Permission denied'));
+            }
+
+            if (!$user->is_enable_login || (int) $user->is_disable === 1) {
+                return redirect()->route('users.index')->with('error', __('Your account has been disabled. Please contact the administrator.'));
             }
 
             // Store the original user ID in session

@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
              \App\Http\Middleware\ApplyDynamicMailConfig::class,
             \App\Http\Middleware\HandleInertiaRequests::class,
             \App\Http\Middleware\DemoModeMiddleware::class,
+            \App\Http\Middleware\EnforceSessionTimeout::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
             \App\Http\Middleware\UpdateUserActiveStatus::class,
         ]);

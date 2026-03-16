@@ -11,7 +11,7 @@ import { EditUserProps, EditUserFormData } from './types';
 
 export default function Edit({ user, onSuccess, roles = {} }: EditUserProps) {
     const { t } = useTranslation();
-    const { data, setData, put, processing, errors } = useForm<EditUserFormData>({
+    const { data, setData, transform, put, processing, errors } = useForm<EditUserFormData>({
         name: user.name,
         email: user.email,
         mobile_no: user.mobile_no,
@@ -20,9 +20,18 @@ export default function Edit({ user, onSuccess, roles = {} }: EditUserProps) {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
+        const originalTransform = (form: EditUserFormData) => form;
+        transform((form) => ({
+            ...form,
+            is_enable_login: form.is_enable_login ? 1 : 0,
+        }));
         put(route('users.update', user.id), {
             onSuccess: () => {
+                transform(originalTransform);
                 onSuccess();
+            },
+            onError: () => {
+                transform(originalTransform);
             }
         });
     };
@@ -58,11 +67,13 @@ export default function Edit({ user, onSuccess, roles = {} }: EditUserProps) {
                 </div>
                 <div>
                     <PhoneInputComponent
+                        id="edit_mobile_no"
                         label={t('Mobile Number')}
                         value={data.mobile_no}
                         onChange={(value) => setData('mobile_no', value)}
                         placeholder="+1234567890"
                         error={errors.mobile_no}
+                        required
                     />
                 </div>
 

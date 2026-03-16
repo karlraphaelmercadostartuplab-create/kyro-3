@@ -71,6 +71,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'locked_until' => 'datetime',
+            'is_disable' => 'boolean',
+            'is_enable_login' => 'boolean',
         ];
     }
 

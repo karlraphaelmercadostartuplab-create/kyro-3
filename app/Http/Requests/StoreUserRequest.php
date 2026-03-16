@@ -16,10 +16,10 @@ class StoreUserRequest extends FormRequest
         $typeRule = auth()->user()->type === 'superadmin' ? 'nullable' : 'required|exists:roles,id';
         
         return [
-            'name' => 'required|string|max:255',
+            'name' => ['required', 'string', 'max:255', 'regex:/.*\S.*/'],
             'email' => 'required|email|unique:users,email',
-            'mobile_no' => 'nullable|string|regex:/^\+\d{1,3}\d{9,13}$/',
-            'password' => 'required|confirmed|min:6',
+            'mobile_no' => ['required', 'string', 'regex:/^\+\d{1,3}\d{9,13}$/'],
+            'password' => ['required', 'confirmed', 'min:6', 'regex:/.*\S.*/'],
             'type' => $typeRule,
             'is_enable_login' => 'boolean',
         ];
@@ -28,6 +28,10 @@ class StoreUserRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'name.regex' => __('Name cannot be blank.'),
+            'mobile_no.required' => __('Mobile number is required.'),
+            'mobile_no.regex' => __('Mobile number format must be +[country code][phone number].'),
+            'password.regex' => __('Password cannot be blank.'),
             'type.required' => __('Role is required.'),
         ];
     }

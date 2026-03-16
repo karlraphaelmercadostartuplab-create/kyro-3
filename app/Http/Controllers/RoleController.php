@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 use App\Http\Requests\StoreRoleRequest;
 use App\Http\Requests\UpdateRoleRequest;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +12,11 @@ use Inertia\Inertia;
 
 class RoleController extends Controller
 {
+    private function clearPermissionCache(): void
+    {
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+    }
+
     public function index()
     {
         if(Auth::user()->can('manage-roles')){
@@ -61,6 +67,7 @@ class RoleController extends Controller
             $role->created_by = creatorId();
             $role->save();
             $role->syncPermissions($request->permissions ?? []);
+            $this->clearPermissionCache();
             return redirect()->route('roles.index')->with('success', __('The role has been created successfully.'));
         }
         else{
@@ -99,6 +106,7 @@ class RoleController extends Controller
                 'label' => $request->label
             ]);
             $role->syncPermissions($request->permissions ?? []);
+            $this->clearPermissionCache();
             return redirect()->route('roles.index')->with('success', __('The role details are updated successfully.'));
         }
         else{
@@ -113,6 +121,7 @@ class RoleController extends Controller
                 return redirect()->route('roles.index')->with('error', __('This role is not editable'));
             }
             $role->delete();
+            $this->clearPermissionCache();
             return redirect()->route('roles.index')->with('success', __('The role has been deleted.'));
         }
         else{

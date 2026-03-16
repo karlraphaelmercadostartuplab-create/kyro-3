@@ -12,7 +12,7 @@ import { CreateUserProps, CreateUserFormData } from './types';
 export default function Create({ onSuccess, roles = {} }: CreateUserProps) {
     const { t } = useTranslation();
     const { auth } = usePage().props as any;
-    const { data, setData, post, processing, errors } = useForm<CreateUserFormData>({
+    const { data, setData, transform, post, processing, errors } = useForm<CreateUserFormData>({
         name: '',
         email: '',
         password: '',
@@ -26,9 +26,18 @@ export default function Create({ onSuccess, roles = {} }: CreateUserProps) {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
+        const originalTransform = (form: CreateUserFormData) => form;
+        transform((form) => ({
+            ...form,
+            is_enable_login: form.is_enable_login ? 1 : 0,
+        }));
         post(route('users.store'), {
             onSuccess: () => {
+                transform(originalTransform);
                 onSuccess();
+            },
+            onError: () => {
+                transform(originalTransform);
             }
         });
     };
@@ -64,11 +73,13 @@ export default function Create({ onSuccess, roles = {} }: CreateUserProps) {
                 </div>
                 <div>
                     <PhoneInputComponent
+                        id="mobile_no"
                         label={t('Mobile Number')}
                         value={data.mobile_no}
                         onChange={(value) => setData('mobile_no', value)}
                         placeholder="+1234567890"
                         error={errors.mobile_no}
+                        required
                     />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
