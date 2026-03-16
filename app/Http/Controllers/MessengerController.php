@@ -370,8 +370,8 @@ class MessengerController extends Controller
     public function deleteMessage($messageId)
     {
         $user = Auth::user();
-        if (!$user->can('manage-messenger')) {
-            return back()->with('error', __('Permission denied'));
+        if (!$user->can('delete-messages') && !$user->can('manage-messenger')) {
+            return response()->json(['error' => __('Permission denied')], 403);
         }
 
             $message = Message::find($messageId);
@@ -452,7 +452,7 @@ class MessengerController extends Controller
 
     public function togglePin(Request $request)
     {
-        if (Auth::user()->can('toggle-pinned-messages')) { 
+        if (Auth::user()->can('toggle-pinned-messages')) {
             $request->validate([
                 'user_id' => 'required|exists:users,id',
             ], [
@@ -484,6 +484,11 @@ class MessengerController extends Controller
 
             return response()->json(['is_pinned' => $isPinned]);
         } else {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'message' => __('Permission denied'),
+                ], 403);
+            }
             return back()->with('error', __('Permission denied'));
         }
     }
