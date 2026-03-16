@@ -14,8 +14,6 @@ use Carbon\Carbon;
 use App\Events\MessageSent;
 use App\Events\UserOnline;
 use App\Events\UserOffline;
-use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\Schema;
 
 class MessengerController extends Controller
 {
@@ -371,34 +369,32 @@ class MessengerController extends Controller
 
     public function deleteMessage($messageId)
     {
-        if (!Auth::user()->can('delete-messages')) {
-            return response()->json(['error' => __('Permission denied')], 403);
-        }
         $user = Auth::user();
-        $message = Message::find($messageId);
+        if ($user->can('delete-messages')) {  
+            $message = Message::find($messageId);
 
             if (!$message || ($message->from_id !== $user->id && $message->to_id !== $user->id)) {
-            return response()->json(['error' => __('Message not found')], 404);
-        }
+                return response()->json(['error' => __('Message not found')], 404);
+            }
 
-            // Delete only for current user first (WhatsApp-style delete for me).
-        if ((int) $message->from_id === (int) $user->id) {
-            $message->deleted_by_sender = true;
-        }
+            // Mark as deleted by current user
+            if ($message->from_id === $user->id) {
+                $message->deleted_by_sender = true;
+            } else {
+                $message->deleted_by_receiver = true;
+            }
 
-        if ((int) $message->to_id === (int) $user->id) {
-            $message->deleted_by_receiver = true;
-        }
+            // If both users deleted, hard delete
+            if ($message->deleted_by_sender && $message->deleted_by_receiver) {
+                $message->delete();
+            } else {
+                $message->save();
+            }
 
-        // If both sides deleted the message, remove it entirely.
-        if ($message->deleted_by_sender && $message->deleted_by_receiver) {
-            $message->delete();
+            return response()->json(['success' => true]);
         } else {
-            $message->save();
+            return back()->with('error', __('Permission denied'));
         }
-
-        return response()->json(['success' => true, 'message' => __('Message deleted successfully.')]);
-
     }
 
     public function updatePresence(Request $request)
