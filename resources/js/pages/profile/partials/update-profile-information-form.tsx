@@ -83,6 +83,7 @@ export default function UpdateProfileInformation({
                         value={data.name}
                         onChange={(e) => setData("name", e.target.value)}
                         placeholder={t('Enter your full name')}
+                        maxLength={27}
                         required
                         autoComplete="name"
                     />

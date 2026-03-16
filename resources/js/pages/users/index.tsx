@@ -399,7 +399,7 @@ export default function Index() {
                                     {users.data.map((user) => (
                                         <Card key={user.id} className="border border-gray-200">
                                             <div className="p-4">
-                                                <div className="flex items-center gap-3 mb-3">
+                                                <div className="flex items-start gap-3 mb-3">
                                                     <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 border flex-shrink-0">
                                                         {user.avatar ? (
                                                             <img
@@ -413,8 +413,10 @@ export default function Index() {
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <div className="flex-1">
-                                                        <h3 className="font-semibold text-base text-gray-900">{user.name}</h3>
+                                                    <div className="flex-1 min-w-0">
+                                                        <h3 className="font-semibold text-base text-gray-900 break-words leading-tight">
+                                                            {user.name}
+                                                        </h3>
                                                     </div>
                                                 </div>
 

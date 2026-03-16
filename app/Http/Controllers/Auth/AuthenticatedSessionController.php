@@ -86,6 +86,10 @@ class AuthenticatedSessionController extends Controller
         $browserData = parseBrowserData($userAgent);
         $details = array_merge($locationData, $browserData, [
             'status' => 'success',
+            'auth_method' => 'login',
+            'user_name' => Auth::user()->name,
+            'user_email' => Auth::user()->email,
+            'user_type' => Auth::user()->type,
             'referrer_host' => $request->headers->get('referer') ? parse_url($request->headers->get('referer'), PHP_URL_HOST) : null,
             'referrer_path' => $request->headers->get('referer') ? parse_url($request->headers->get('referer'), PHP_URL_PATH) : null,
         ]);

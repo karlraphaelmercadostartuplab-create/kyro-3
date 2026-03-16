@@ -8,6 +8,7 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Requests\ChangePasswordRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
 use App\Events\CreateUser;
 use App\Models\EmailTemplate;
@@ -169,11 +170,13 @@ class UserController extends Controller
     {
         if (Auth::user()->can('impersonate-users'))
         {
+            $impersonator = Auth::user();
+
             if ($user->id === Auth::id()) {
                 return redirect()->route('users.index')->with('error', __('You cannot login as user yourself'));
             }
 
-            if (Auth::user()->type !== 'superadmin' && $user->created_by !== creatorId()) {
+            if ($impersonator->type !== 'superadmin' && $user->created_by !== creatorId()) {
                 return redirect()->route('users.index')->with('error', __('Permission denied'));
             }
 
@@ -186,6 +189,11 @@ class UserController extends Controller
 
             // Login as the target user
             Auth::login($user);
+            $this->logLoginHistory(request(), 'impersonation', [
+                'impersonated_by_id' => $impersonator->id,
+                'impersonated_by_name' => $impersonator->name,
+                'impersonated_by_email' => $impersonator->email,
+            ]);
         }
         else
         {
@@ -220,9 +228,15 @@ class UserController extends Controller
         if(Auth::user()->can('view-login-history')){
             $loginHistories = LoginHistory::with('user')
                 ->when(Auth::user()->type !== 'superadmin', fn($q) => $q->where('created_by', creatorId()))
-                ->when(request('user_name'), fn($q) => $q->whereHas('user', fn($q) => $q->where('name', 'like', '%' . request('user_name') . '%')))
+                ->when(request('user_name'), function ($q) {
+                    $search = request('user_name');
+                    $q->where(function ($query) use ($search) {
+                        $query->where('details->user_name', 'like', '%' . $search . '%')
+                            ->orWhereHas('user', fn($userQuery) => $userQuery->where('name', 'like', '%' . $search . '%'));
+                    });
+                })
                 ->when(request('ip'), fn($q) => $q->where('ip', 'like', '%' . request('ip') . '%'))
-                ->when(request('role'), fn($q) => $q->whereHas('user', fn($q) => $q->where('type', request('role'))))
+                ->when(request('role'), fn($q) => $q->where('type', request('role')))
                 ->when(request('sort'), fn($q) => $q->orderBy(request('sort'), request('direction', 'asc')), fn($q) => $q->latest())
                 ->paginate(request('per_page', 10))
                 ->withQueryString();
@@ -237,5 +251,60 @@ class UserController extends Controller
         else{
             return back()->with('error', __('Permission denied'));
         }
+    }
+
+    private function logLoginHistory($request, string $authMethod = 'login', array $extraDetails = []): void
+    {
+        $ip = $request->ip();
+        $locationData = $this->getLocationData($ip);
+        $userAgent = $request->userAgent();
+        $browserData = parseBrowserData($userAgent);
+        $details = array_merge($locationData, $browserData, [
+            'status' => 'success',
+            'auth_method' => $authMethod,
+            'user_name' => Auth::user()->name,
+            'user_email' => Auth::user()->email,
+            'user_type' => Auth::user()->type,
+            'referrer_host' => $request->headers->get('referer') ? parse_url($request->headers->get('referer'), PHP_URL_HOST) : null,
+            'referrer_path' => $request->headers->get('referer') ? parse_url($request->headers->get('referer'), PHP_URL_PATH) : null,
+        ], $extraDetails);
+
+        $loginHistory = new LoginHistory();
+        $loginHistory->user_id = Auth::id();
+        $loginHistory->ip = $ip;
+        $loginHistory->date = now()->toDateString();
+        $loginHistory->details = $details;
+        $loginHistory->type = Auth::user()->type;
+        $loginHistory->created_by = creatorId();
+        $loginHistory->save();
+    }
+
+    private function getLocationData(string $ip): array
+    {
+        try {
+            $response = Http::timeout(5)->get("http://ip-api.com/json/{$ip}");
+            if ($response->successful()) {
+                $data = $response->json();
+                return [
+                    'country' => $data['country'] ?? null,
+                    'countryCode' => $data['countryCode'] ?? null,
+                    'region' => $data['region'] ?? null,
+                    'regionName' => $data['regionName'] ?? null,
+                    'city' => $data['city'] ?? null,
+                    'zip' => $data['zip'] ?? null,
+                    'lat' => $data['lat'] ?? null,
+                    'lon' => $data['lon'] ?? null,
+                    'timezone' => $data['timezone'] ?? null,
+                    'isp' => $data['isp'] ?? null,
+                    'org' => $data['org'] ?? null,
+                    'as' => $data['as'] ?? null,
+                    'query' => $data['query'] ?? $ip,
+                ];
+            }
+        } catch (\Exception $e) {
+            // Ignore API errors
+        }
+
+        return ['query' => $ip];
     }
 }

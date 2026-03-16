@@ -16,11 +16,19 @@ class ProfileUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:27', 'regex:/.*\S.*/'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($this->user()->id)],
             'mobile_no' => ['nullable', 'string', 'max:20'],
             'avatar' => ['nullable', 'string', 'max:500'],
             'slug' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9-]+$/', Rule::unique(User::class)->ignore($this->user()->id)],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.max' => __('Name must not exceed 27 characters.'),
+            'name.regex' => __('Name cannot be blank.'),
         ];
     }
 }

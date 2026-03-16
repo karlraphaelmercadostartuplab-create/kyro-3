@@ -49,6 +49,7 @@ export default function Edit({ user, onSuccess, roles = {} }: EditUserProps) {
                         value={data.name}
                         onChange={(e) => setData('name', e.target.value)}
                         placeholder={t('Enter full name')}
+                        maxLength={27}
                         required
                     />
                     <InputError message={errors.name} />

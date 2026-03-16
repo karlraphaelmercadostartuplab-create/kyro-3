@@ -21,7 +21,7 @@ interface LoginHistoryItem {
         id: number;
         name: string;
         email: string;
-    };
+    } | null;
     ip: string;
     date: string;
     details: {
@@ -31,6 +31,12 @@ interface LoginHistoryItem {
         browser_name?: string;
         os_name?: string;
         device_type?: string;
+        auth_method?: string;
+        user_name?: string;
+        user_email?: string;
+        user_type?: string;
+        impersonated_by_name?: string;
+        impersonated_by_email?: string;
     };
     type: string;
     created_at: string;
@@ -105,8 +111,13 @@ export default function LoginHistory() {
             sortable: true,
             render: (_: any, item: LoginHistoryItem) => (
                 <div>
-                    <div className="font-medium">{item.user.name}</div>
-                    <div className="text-sm text-gray-500">{item.user.email}</div>
+                    <div className="font-medium">{item.details.user_name || item.user?.name || '-'}</div>
+                    <div className="text-sm text-gray-500">{item.details.user_email || item.user?.email || '-'}</div>
+                    {item.details.auth_method === 'impersonation' && item.details.impersonated_by_name && (
+                        <div className="text-xs text-orange-600">
+                            {t('By')} {item.details.impersonated_by_name}
+                        </div>
+                    )}
                 </div>
             )
         },

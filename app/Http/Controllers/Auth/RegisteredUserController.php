@@ -46,9 +46,12 @@ class RegisteredUserController extends Controller
         }
 
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => ['required', 'string', 'max:27', 'regex:/.*\S.*/'],
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ], [
+            'name.max' => __('Name must not exceed 27 characters.'),
+            'name.regex' => __('Name cannot be blank.'),
         ]);
 
         try {

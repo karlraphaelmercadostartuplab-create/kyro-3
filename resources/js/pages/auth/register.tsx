@@ -46,6 +46,7 @@ export default function Register() {
                             name="name"
                             value={data.name}
                             onChange={(e) => setData('name', e.target.value)}
+                            maxLength={27}
                             required
                             autoFocus
                             tabIndex={1}
