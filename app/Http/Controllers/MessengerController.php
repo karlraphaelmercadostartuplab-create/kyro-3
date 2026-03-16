@@ -14,6 +14,8 @@ use Carbon\Carbon;
 use App\Events\MessageSent;
 use App\Events\UserOnline;
 use App\Events\UserOffline;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Schema;
 
 class MessengerController extends Controller
 {
