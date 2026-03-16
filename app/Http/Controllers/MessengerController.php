@@ -322,7 +322,7 @@ class MessengerController extends Controller
 
     public function toggleFavorite(Request $request)
     {
-        if (Auth::user()->can('toggle-favorite-messages')) {        
+        if (Auth::user()->can('toggle-favorite-messages')) {      
             $request->validate([
                 'user_id' => 'required|exists:users,id',
             ], [
@@ -350,6 +350,11 @@ class MessengerController extends Controller
 
             return response()->json(['is_favorite' => $isFavorite]);
         } else {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'message' => __('Permission denied'),
+                ], 403);
+            }
             return back()->with('error', __('Permission denied'));
         }
     }
