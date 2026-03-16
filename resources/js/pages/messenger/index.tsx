@@ -16,8 +16,8 @@ import { getImagePath, getAdminSetting } from '@/utils/helpers';
 
 interface Message {
     id: number | string;
-    sender_id: number;
-    receiver_id: number;
+    sender_id: number | string;
+    receiver_id: number | string;
     message: string;
     body?: string;
     attachment?: string;
@@ -456,18 +456,46 @@ export default function MessengerPage() {
 
     const confirmDelete = async () => {
         if (!deleteConfirm) return;
+
+        const messageIdToDelete = deleteConfirm.toString();
         
         try {
-            await fetch(route('messenger.delete-message', deleteConfirm), {
+            //await fetch(route('messenger.delete-message', deleteConfirm), {
+            const response = await fetch(route('messenger.delete-message', deleteConfirm), {
                 method: 'DELETE',
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
                 }
             });
-            
-            setChatMessages(prev => prev.filter(msg => msg.id !== deleteConfirm));
+            //setChatMessages(prev => prev.filter(msg => msg.id !== deleteConfirm));
+             if (!response.ok) {
+                throw new Error('Delete request failed');
+            }
+
+            let updatedMessages: Message[] = [];
+            setChatMessages(prev => {
+                updatedMessages = prev.filter(msg => msg.id.toString() !== messageIdToDelete);
+                return updatedMessages;
+            });
+
+            if (selectedUser) {
+                const latestMessage = updatedMessages[updatedMessages.length - 1];
+                setUsersState(prev => prev.map(user =>
+                    user.id === selectedUser.id
+                        ? {
+                            ...user,
+                            last_message: latestMessage
+                                ? { ...latestMessage, body: latestMessage.body ?? latestMessage.message }
+                                : undefined,
+                        }
+                        : user
+                ));
+            }
             setDeleteConfirm(null);
             setShowDeleteDialog(false);
+            setOpenDropdown(null);
         } catch (error) {
             console.error('Failed to delete message:', error);
         }
@@ -507,6 +535,7 @@ export default function MessengerPage() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    //'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json'
@@ -875,7 +904,8 @@ export default function MessengerPage() {
                                 )}
                                 <div className="space-y-4 min-h-full">
                                     {chatMessages.length > 0 ? chatMessages.map((message: Message) => {
-                                        const isOwnMessage = message.sender_id === auth.user.id;
+                                        //const isOwnMessage = message.sender_id === auth.user.id;
+                                        const isOwnMessage = Number(message.sender_id) === Number(auth.user.id);
                                         return (
                                             <div key={message.id} className={`group flex mb-2 items-end gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
                                                 {!isOwnMessage && (auth.user?.permissions?.includes('delete-messages')) && (
