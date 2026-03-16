@@ -369,6 +369,9 @@ class MessengerController extends Controller
 
     public function deleteMessage($messageId)
     {
+        if (!Auth::user()->can('delete-messages')) {
+            return response()->json(['error' => __('Permission denied')], 403);
+        }
         $user = Auth::user();
         $message = Message::find($messageId);
 
@@ -376,9 +379,23 @@ class MessengerController extends Controller
             return response()->json(['error' => __('Message not found')], 404);
         }
 
-            // Permanently delete the message immediately.
-        $message->delete();
-        return response()->json(['success' => true]);
+            // Delete only for current user first (WhatsApp-style delete for me).
+        if ((int) $message->from_id === (int) $user->id) {
+            $message->deleted_by_sender = true;
+        }
+
+        if ((int) $message->to_id === (int) $user->id) {
+            $message->deleted_by_receiver = true;
+        }
+
+        // If both sides deleted the message, remove it entirely.
+        if ($message->deleted_by_sender && $message->deleted_by_receiver) {
+            $message->delete();
+        } else {
+            $message->save();
+        }
+
+        return response()->json(['success' => true, 'message' => __('Message deleted successfully.')]);
 
     }
 

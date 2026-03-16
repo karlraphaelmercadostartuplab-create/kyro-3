@@ -460,7 +460,7 @@ export default function MessengerPage() {
         const messageIdToDelete = deleteConfirm.toString();
         
         try {
-            //await fetch(route('messenger.delete-message', deleteConfirm), {
+            
             const response = await fetch(route('messenger.delete-message', deleteConfirm), {
                 method: 'DELETE',
                 headers: {
@@ -469,8 +469,9 @@ export default function MessengerPage() {
                     'Accept': 'application/json'
                 }
             });
-            //setChatMessages(prev => prev.filter(msg => msg.id !== deleteConfirm));
-             if (!response.ok) {
+            const payload = await response.json().catch(() => null);
+
+            if (!response.ok || payload?.success === false) {
                 throw new Error('Delete request failed');
             }
 
