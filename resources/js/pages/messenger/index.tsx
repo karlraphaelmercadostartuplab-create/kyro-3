@@ -426,17 +426,45 @@ export default function MessengerPage() {
                 'Accept': 'application/json'
             },
             body: formData
-        }).then(response => {
+        }).then(async response => {
             if (!response.ok) {
                 setChatMessages(prev => prev.filter(msg => msg.id.toString() !== tempMessage.id.toString()));
-            } else {
-                // Update users list with latest message
-                setUsersState(prev => prev.map(user => 
-                    user.id === selectedUser.id 
-                        ? { ...user, last_message: { ...tempMessage, body: messageText || '📎 Attachment' } }
-                        : user
+            return;
+            }
+
+            const payload = await response.json().catch(() => null);
+            const savedMessage = payload?.data;
+
+            if (savedMessage?.id) {
+                setChatMessages(prev => prev.map(msg =>
+                    msg.id.toString() === tempMessage.id.toString()
+                        ? {
+                            ...msg,
+                            id: savedMessage.id,
+                            created_at: savedMessage.created_at || msg.created_at,
+                            updated_at: savedMessage.updated_at || msg.updated_at,
+                        }
+                        : msg
                 ));
             }
+            // Update users list with latest message
+            setUsersState(prev => prev.map(user => 
+                user.id === selectedUser.id 
+                    ? {
+                        ...user,
+                        last_message: {
+                            ...tempMessage,
+                            id: savedMessage?.id || tempMessage.id,
+                            body: messageText || '📎 Attachment',
+                            message: messageText || '📎 Attachment',
+                            created_at: savedMessage?.created_at || tempMessage.created_at,
+                            updated_at: savedMessage?.updated_at || tempMessage.updated_at,
+                        },
+                    }
+                    : user
+            ));
+
+
         }).catch(() => {
             setChatMessages(prev => prev.filter(msg => msg.id.toString() !== tempMessage.id.toString()));
         });

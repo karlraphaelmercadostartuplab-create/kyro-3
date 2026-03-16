@@ -186,7 +186,32 @@ class MessengerController extends Controller
             // Dispatch event for real-time updates
             event(new MessageSent($message, $receiverId));
 
-            return response()->json(['success' => true, 'message' => __('Message sent successfully!')]);
+            return response()->json([
+                'success' => true,
+                'message' => __('Message sent successfully!'),
+                'data' => [
+                    'id' => $message->id,
+                    'sender_id' => $message->from_id,
+                    'receiver_id' => $message->to_id,
+                    'body' => $message->body,
+                    'attachment' => $message->attachment,
+                    'is_read' => (bool) $message->seen,
+                    'created_at' => $message->created_at->toISOString(),
+                    'updated_at' => $message->updated_at->toISOString(),
+                    'sender' => [
+                        'id' => $message->fromUser->id,
+                        'name' => $message->fromUser->name,
+                        'email' => $message->fromUser->email,
+                        'avatar' => $message->fromUser->avatar,
+                    ],
+                    'receiver' => [
+                        'id' => $message->toUser->id,
+                        'name' => $message->toUser->name,
+                        'email' => $message->toUser->email,
+                        'avatar' => $message->toUser->avatar,
+                    ],
+                ],
+            ]);
         } else {
             return back()->with('error', __('Permission denied'));
         }
