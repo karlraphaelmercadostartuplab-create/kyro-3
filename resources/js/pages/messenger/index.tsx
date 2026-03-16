@@ -149,8 +149,6 @@ export default function MessengerPage() {
         }
     }, [messages, users]);
 
-    
-
     const loadUserPreferences = async () => {
         try {
             const [favResponse, pinnedResponse] = await Promise.all([
@@ -169,17 +167,53 @@ export default function MessengerPage() {
             ]);
 
             const [favorites, pinned] = await Promise.all([favResponse.json(), pinnedResponse.json()]);
-            setFavoriteUsers(normalizeIdList(Array.isArray(favorites) ? favorites : []));
+            setFavoriteUsers(Array.isArray(favorites) ? favorites : []);
             setPinnedUsers(normalizeIdList(Array.isArray(pinned) ? pinned : []));
         } catch (error) {
             console.error('Failed to load user preferences:', error);
         }
     };
 
-    useEffect(() => {
-        // Load favorites on mount
-        loadUserPreferences();
-    }, []);
+    const parseJsonResponse = async (response: Response): Promise<unknown | null> => {
+        const contentType = response.headers.get('content-type') || '';
+        if (!response.ok || !contentType.includes('application/json')) {
+            return null;
+        }
+
+        return response.json().catch(() => null);
+    };
+
+    const loadUserPreferences = async () => {
+        try {
+            const [favoritesResult, pinnedResult] = await Promise.allSettled([
+                fetch(route('messenger.favorites'), {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                }),
+                fetch(route('messenger.pinned'), {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+            ]);
+
+            if (favoritesResult.status === 'fulfilled') {
+                const favorites = await parseJsonResponse(favoritesResult.value);
+                if (Array.isArray(favorites)) {
+                    setFavoriteUsers(normalizeIdList(favorites as Array<number | string>));
+
+                    }
+
+            if (pinnedResult.status === 'fulfilled') {
+                const pinned = await parseJsonResponse(pinnedResult.value);
+                if (Array.isArray(pinned)) {
+                    setPinnedUsers(normalizeIdList(pinned as Array<number | string>));
+
+                    
+
 
     useEffect(() => {
         if (selectedUserId && users.length > 0) {
@@ -581,25 +615,16 @@ export default function MessengerPage() {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
                 },
-                body: JSON.stringify({ user_id: normalizedUserId })
+                body: JSON.stringify({ user_id: userId })
             });
             
-            const data = await response.json().catch(() => null);
-            if (!response.ok) {
-                return;
+            if (response.ok) {
+                setFavoriteUsers(prev => 
+                    prev.includes(userId) 
+                        ? prev.filter(id => id !== userId)
+                        : [...prev, userId]
+                );
             }
-            if (typeof (data as { is_favorite?: unknown })?.is_favorite === 'boolean') {
-                const isFavorite = (data as { is_favorite: boolean }).is_favorite;
-                setFavoriteUsers((prev) => {
-                    if (isFavorite) {
-                        return prev.includes(normalizedUserId) ? prev : [...prev, normalizedUserId];
-                    }
-                    return prev.filter((id) => id !== normalizedUserId);
-                });
-                return;
-            }
-
-            await loadUserPreferences();
         } catch (error) {
             console.error('Failed to toggle favorite:', error);
         }
@@ -937,14 +962,14 @@ export default function MessengerPage() {
                                                                     toggleFavorite(user.id);
                                                                 }}
                                                                 className="h-6 w-6 p-0"
-                                                                title={isUserFavorite(user.id) ? t('Remove from favorites') : t('Add to favorites')}
+                                                                title={favoriteUsers.includes(user.id) ? t('Remove from favorites') : t('Add to favorites')}
                                                             >
                                                                 <span className={`text-base transition-colors ${
-                                                                    isUserFavorite(user.id) 
+                                                                    favoriteUsers.includes(user.id) 
                                                                         ? 'text-yellow-500 hover:text-yellow-600' 
                                                                         : 'text-gray-400 hover:text-yellow-500'
                                                                 }`}>
-                                                                    <Star className={`h-4 w-4 ${isUserFavorite(user.id) ? 'fill-current' : ''}`} />
+                                                                    <Star className={`h-4 w-4 ${favoriteUsers.includes(user.id) ? 'fill-current' : ''}`} />
                                                                 </span>
                                                             </Button>
                                                         )}
