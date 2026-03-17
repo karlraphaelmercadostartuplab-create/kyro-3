@@ -11,9 +11,31 @@ use Workdo\Webhook\Models\WebhookModule;
 
 class WebhookController extends Controller
 {
+    private function canManageWebhooks(): bool
+    {
+        return Auth::user()->can('manage-webhooks') || Auth::user()->can('manage-settings');
+    }
+
+    private function canPerformWebhookAction(string $permission): bool
+    {
+        return $this->canManageWebhooks() || Auth::user()->can($permission);
+    }
+
+    private function isWebhookOwnedByCurrentAccount(Webhook $webhook): bool
+    {
+        if (!is_null($webhook->created_by)) {
+            return (int) $webhook->created_by === (int) creatorId();
+        }
+
+        if (!is_null($webhook->creator_id)) {
+            return in_array((int) $webhook->creator_id, [(int) creatorId(), (int) Auth::id()], true);
+        }
+
+        return false;
+    }
     public function index()
     {
-        if (!Auth::user()->can('manage-webhooks')) {
+        if (!$this->canManageWebhooks()) {
             if (request()->expectsJson()) {
                 return response()->json(['error' => 'Permission denied'], 403);
             }
@@ -31,7 +53,13 @@ class WebhookController extends Controller
 
         // Get user's webhooks with webhook module relationship
         $webhooks = Webhook::with('webhookModule')
-            ->where('created_by', creatorId())
+            ->where(function ($query) {
+                $query->where('created_by', creatorId())
+                    ->orWhere(function ($legacyQuery) {
+                        $legacyQuery->whereNull('created_by')
+                            ->where('creator_id', creatorId());
+                    });
+            })
             ->get();
             
         // Ensure webhookModule is loaded for each webhook
@@ -45,7 +73,7 @@ class WebhookController extends Controller
 
     public function store(Request $request)
     {
-        if (!Auth::user()->can('create-webhooks')) {
+        if (!$this->canPerformWebhookAction('create-webhooks')) {
             return back()->with('error', __('Permission denied'));
         }
 
@@ -68,12 +96,12 @@ class WebhookController extends Controller
 
     public function update(Request $request, Webhook $webhook)
     {
-        if (!Auth::user()->can('edit-webhooks')) {
+        if (!$this->canPerformWebhookAction('edit-webhooks')) {
             return back()->with('error', __('Permission denied'));
         }
 
         // Check ownership
-        if ($webhook->created_by !== creatorId()) {
+        if (!$this->isWebhookOwnedByCurrentAccount($webhook)) {
             return back()->with('error', __('Permission denied'));
         }
 
@@ -90,12 +118,12 @@ class WebhookController extends Controller
 
     public function destroy(Webhook $webhook)
     {
-        if (!Auth::user()->can('delete-webhooks')) {
+        if (!$this->canPerformWebhookAction('delete-webhooks')) {
             return back()->with('error', __('Permission denied'));
         }
 
         // Check ownership
-        if ($webhook->created_by !== creatorId()) {
+        if (!$this->isWebhookOwnedByCurrentAccount($webhook)) {
             return back()->with('error', __('Permission denied'));
         }
 
@@ -106,7 +134,7 @@ class WebhookController extends Controller
     
     public function toggle(Webhook $webhook)
     {
-        if (!Auth::user()->can('edit-webhooks')) {
+        if (!$this->canPerformWebhookAction('edit-webhooks')) {
             if (request()->expectsJson()) {
                 return response()->json(['error' => 'Permission denied'], 403);
             }
@@ -114,7 +142,7 @@ class WebhookController extends Controller
         }
 
         // Check ownership
-        if ($webhook->created_by !== creatorId()) {
+        if (!$this->isWebhookOwnedByCurrentAccount($webhook)) {
             if (request()->expectsJson()) {
                 return response()->json(['error' => 'Permission denied'], 403);
             }

@@ -53,9 +53,9 @@ class HomeController extends Controller
     private function regularDashboard()
     {
         $user = Auth::user();
-        $accountDashboardRoles = ['staff', 'auditor'];
+        
         $canAccessAccountDashboard = $user->can('manage-account-dashboard')
-            || (in_array($user->type, $accountDashboardRoles, true) && $user->can('manage-dashboard'));
+            || $user->can('manage-dashboard');
 
         if (Module_is_active('Account') && $canAccessAccountDashboard) {
             return redirect()->route('account.index');

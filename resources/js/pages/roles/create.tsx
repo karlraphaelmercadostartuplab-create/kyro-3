@@ -16,7 +16,7 @@ export default function Create() {
     const { t } = useTranslation();
     const { permissions } = usePage<RoleCreateProps>().props;
     const [searchTerm, setSearchTerm] = useState('');
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, setError, clearErrors } = useForm({
         name: '',
         label: '',
         permissions: [] as string[]
@@ -25,10 +25,18 @@ export default function Create() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (data.permissions.length === 0) {
+            setError('permissions', t('Please select at least one permission.'));
+            return;
+        }
+
+        clearErrors('permissions');
         post(route('roles.store'));
     };
 
     const handlePermissionChange = (permissionName: string, checked: boolean) => {
+        clearErrors('permissions');
+
         if (checked) {
             setData('permissions', [...data.permissions, permissionName]);
         } else {
@@ -37,6 +45,8 @@ export default function Create() {
     };
 
     const handleModuleChange = (modulePermissions: any[], checked: boolean) => {
+        clearErrors('permissions');
+
         const modulePermissionNames = modulePermissions.map(p => p.name);
         if (checked) {
             const newPermissions = [...new Set([...data.permissions, ...modulePermissionNames])];

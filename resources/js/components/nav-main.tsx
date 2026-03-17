@@ -40,6 +40,26 @@ export function NavMain({ items = [], searchQuery = '' }: { items: NavItem[]; se
     const page = usePage();
     const { t } = useTranslation();
 
+    const normalizePath = (url: string): string => {
+        const [path] = url.split(/[?#]/);
+        return path !== '/' && path.endsWith('/') ? path.slice(0, -1) : path;
+    };
+
+    const isPathActive = (targetUrl?: string): boolean => {
+        if (!targetUrl) {
+            return false;
+        }
+
+        const currentPath = normalizePath(page.url);
+        const targetPath = normalizePath(new URL(targetUrl, window.location.origin).pathname);
+
+        if (targetPath === '/') {
+            return currentPath === '/';
+        }
+
+        return currentPath === targetPath || currentPath.startsWith(`${targetPath}/`);
+    };
+
     const filterItems = (menuItems: NavItem[], query: string): NavItem[] => {
         if (!query) return menuItems;
 
@@ -78,10 +98,7 @@ export function NavMain({ items = [], searchQuery = '' }: { items: NavItem[]; se
     
     const isChildActive = (children: NavItem[]): boolean => {
         return children.some((child) => {
-            if (child.href) {
-                const childPath = new URL(child.href, window.location.origin).pathname;
-                return page.url === childPath;
-            }
+            if (child.href && isPathActive(child.href)) return true;
             if (child.children) {
                 return isChildActive(child.children);
             }
@@ -93,8 +110,7 @@ export function NavMain({ items = [], searchQuery = '' }: { items: NavItem[]; se
         <SidebarGroup>
             <SidebarMenu>
                 {filteredItems.map((item) => {
-                  const itemPath = item.href ? new URL(item.href, window.location.origin).pathname : '';
-                    const isActive = !!(itemPath && page.url === itemPath);
+                  const isActive = isPathActive(item.href);
                     const hasActiveChild = item.children ? isChildActive(item.children) : false;
                     const shouldBeActive = isActive || hasActiveChild;
                     if (item.children && item.children.length > 0) {
@@ -113,7 +129,7 @@ export function NavMain({ items = [], searchQuery = '' }: { items: NavItem[]; se
                                         <CollapsibleContent>
                                             <SidebarMenuSub>
                                                 {item.children.map((subItem) => {
-                                                    const subItemActive = !!(subItem.href && page.url === new URL(subItem.href, window.location.origin).pathname);
+                                                    const subItemActive = isPathActive(subItem.href);
                                                     const hasActiveSubChild = subItem.children ? isChildActive(subItem.children) : false;
                                                     const subItemShouldBeActive = subItemActive || hasActiveSubChild;
                                                     
