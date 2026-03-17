@@ -92,7 +92,7 @@ export default function Index() {
             header: t('Users'),
             render: (_: any, role: Role) => (
                 <div className="flex flex-wrap gap-1">
-                    {role.users?.slice(0, 5).map((user: any) => (
+                    {role.users?.map((user: any) => (
                         <span key={user.id} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
                             {user.name}
                         </span>
@@ -289,16 +289,12 @@ export default function Index() {
                                                     <div>
                                                         <p className="text-xs font-medium text-gray-600 mb-2">{t('Users')}</p>
                                                         <div className="flex flex-wrap gap-1">
-                                                            {role.users?.slice(0, 2).map((user: any) => (
+                                                            {role.users?.map((user: any) => (
                                                                 <span key={user.id} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700">
                                                                     {user.name}
                                                                 </span>
                                                             ))}
-                                                            {role.users && role.users.length > 2 && (
-                                                                <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-100 text-gray-700">
-                                                                    +{role.users.length - 2}
-                                                                </span>
-                                                            )}
+                                                            
                                                             {role.users && role.users.length === 0 && (
                                                                 <span className="text-xs text-gray-500">{t('No users')}</span>
                                                             )}
