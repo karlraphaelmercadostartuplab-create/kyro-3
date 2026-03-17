@@ -45,10 +45,18 @@ class MessengerController extends Controller
                         $query->where('from_id', $user->id)->where('to_id', $chatUser->id);
                     })->orWhere(function ($query) use ($user, $chatUser) {
                         $query->where('from_id', $chatUser->id)->where('to_id', $user->id);
+                        })->where(function ($query) use ($user) {
+                        // Always hide messages deleted by the current user
+                        $query->where(function ($q) use ($user) {
+                            $q->where('from_id', $user->id)->where('deleted_by_sender', 0);
+                        })->orWhere(function ($q) use ($user) {
+                            $q->where('to_id', $user->id)->where('deleted_by_receiver', 0);
+                        });
                     })->latest()->first();
                     
                     $unreadCount = Message::where('from_id', $chatUser->id)
                         ->where('to_id', $user->id)
+                        ->where('deleted_by_receiver', 0)
                         ->where('seen', 0)
                         ->count();
                     
@@ -89,9 +97,9 @@ class MessengerController extends Controller
                     })->where(function ($query) use ($user) {
                         // Filter out messages deleted by current user
                         $query->where(function ($q) use ($user) {
-                            $q->where('from_id', $user->id)->where('deleted_by_sender', false);
+                            $q->where('from_id', $user->id)->where('deleted_by_sender', 0);
                         })->orWhere(function ($q) use ($user) {
-                            $q->where('to_id', $user->id)->where('deleted_by_receiver', false);
+                             $q->where('to_id', $user->id)->where('deleted_by_receiver', 0);
                         });
                     })->with(['fromUser', 'toUser'])
                     ->orderBy('created_at', 'asc')
@@ -266,9 +274,9 @@ class MessengerController extends Controller
         })->where(function ($query) use ($user) {
             // Filter out messages deleted by current user
             $query->where(function ($q) use ($user) {
-                $q->where('from_id', $user->id)->where('deleted_by_sender', false);
+                $q->where('from_id', $user->id)->where('deleted_by_sender', 0);
             })->orWhere(function ($q) use ($user) {
-                $q->where('to_id', $user->id)->where('deleted_by_receiver', false);
+                $q->where('to_id', $user->id)->where('deleted_by_receiver', 0);
             });
         })->orderBy('created_at', 'desc')
         ->paginate($perPage, ['*'], 'page', $page);
@@ -412,17 +420,19 @@ class MessengerController extends Controller
 
             // Mark as deleted by current user
         if ($message->from_id === $user->id) {
-            $message->deleted_by_sender = true;
+            $message->update(['deleted_by_sender' => 1]);
         } else {
-            $message->deleted_by_receiver = true;
+            $message->update(['deleted_by_receiver' => 1]);
         }
+        $message->refresh();
+
 
              // If both users deleted, hard delete
         if ($message->deleted_by_sender && $message->deleted_by_receiver) {
             $message->delete();
-        } else {
-             $message->save();
+        
         }
+        
         return response()->json(['success' => true]);
     }
 
