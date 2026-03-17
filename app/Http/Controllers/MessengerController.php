@@ -17,25 +17,56 @@ use App\Events\UserOffline;
 
 class MessengerController extends Controller
 {
+    /**
+     * Apply visibility rules for messenger contacts.
+     *
+     * In addition to permission-based user scope, we always include users
+     * who already have a conversation with the current user so existing
+     * chats never disappear for staff/client/vendor accounts.
+     */
+    private function applyMessengerVisibilityScope($userQuery, User $user)
+    {
+        $conversationPartnerIds = Message::query()
+            ->where(function ($query) use ($user) {
+                $query->where('from_id', $user->id)
+                    ->orWhere('to_id', $user->id);
+            })
+            ->get(['from_id', 'to_id'])
+            ->flatMap(function ($message) use ($user) {
+                return [$message->from_id, $message->to_id];
+            })
+            ->filter(fn ($id) => (int) $id !== (int) $user->id)
+            ->unique()
+            ->values()
+            ->all();
+
+        return $userQuery->where(function ($query) use ($user, $conversationPartnerIds) {
+            if ($user->type === 'superadmin') {
+                $query->where('creator_id', creatorId());
+            } elseif ($user->can('manage-any-users')) {
+                // Company or user with manage-any-users can see own + team users
+                $query->where('created_by', creatorId());
+            } elseif ($user->can('manage-own-users')) {
+                // Company or user with manage-own-users can see own users
+                $query->where('creator_id', $user->id);
+            } else {
+                // Default: only own company account
+                $query->where('id', creatorId());
+            }
+
+            if (!empty($conversationPartnerIds)) {
+                $query->orWhereIn('id', $conversationPartnerIds);
+            }
+        });
+    }
+
     public function index(Request $request)
     {
         $user = Auth::user();
         if ($user->can('manage-messenger')) {
             // Get all users except current user with their last message and online status
             $userQuery = User::where('id', '!=', $user->id);
-            // Filter by user permissions
-                if ($user->type === 'superadmin') {
-                    $userQuery->where('creator_id', creatorId());
-                } elseif ($user->can('manage-any-users')) {
-                    // Company or user with manage-any-users can see own + team users
-                    $userQuery->where('created_by', creatorId());
-                } elseif ($user->can('manage-own-users')) {
-                    // Company or user with manage-own-users can see own users
-                    $userQuery->where('creator_id', $user->id);
-                } else {
-                    // Default: only own users
-                    $userQuery->where('id', creatorId());
-                }
+            $this->applyMessengerVisibilityScope($userQuery, $user);
 
             
             $users = $userQuery->select('id', 'name', 'email', 'avatar', 'active_status')
@@ -232,15 +263,7 @@ class MessengerController extends Controller
         // Apply same permission filtering as index method
         $userQuery = User::where('id', '!=', $user->id);
         
-        if ($user->type === 'superadmin') {
-            $userQuery->where('creator_id', creatorId());
-        } elseif ($user->can('manage-any-users')) {
-            $userQuery->where('created_by', creatorId());
-        } elseif ($user->can('manage-own-users')) {
-            $userQuery->where('creator_id', $user->id);
-        } else {
-            $userQuery->where('id', creatorId());
-        }
+        $this->applyMessengerVisibilityScope($userQuery, $user);
         
         $users = $userQuery->select('id', 'name', 'email', 'avatar', 'last_seen_at')
             ->get()
@@ -458,15 +481,7 @@ class MessengerController extends Controller
         $user = Auth::user();
         $userQuery = User::where('id', '!=', $user->id);
         
-        if ($user->type === 'superadmin') {
-            $userQuery->where('creator_id', creatorId());
-        } elseif ($user->can('manage-any-users')) {
-            $userQuery->where('created_by', creatorId());
-        } elseif ($user->can('manage-own-users')) {
-            $userQuery->where('creator_id', $user->id);
-        } else {
-            $userQuery->where('id', creatorId());
-        }
+       $this->applyMessengerVisibilityScope($userQuery, $user);
         
         $users = $userQuery->get(['id', 'name'])->map(function ($chatUser) {
             return [
