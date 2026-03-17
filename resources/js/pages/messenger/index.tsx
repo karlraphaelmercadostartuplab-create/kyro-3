@@ -196,6 +196,11 @@ export default function MessengerPage() {
         }
     };
 
+    useEffect(() => {
+        loadUserPreferences();
+    }, []);
+
+
                     
 
 
@@ -593,21 +598,38 @@ export default function MessengerPage() {
 
     const toggleFavorite = async (userId: number) => {
         try {
+
+            const normalizedUserId = normalizeUserId(userId);
+            if (normalizedUserId === null) {
+                return;
+            }
+
             const response = await fetch(route('messenger.toggle-favorite'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
                 },
-                body: JSON.stringify({ user_id: userId })
+                body: JSON.stringify({ user_id: normalizedUserId })
             });
+
+            const data = await response.json().catch(() => null);
             
             if (response.ok) {
-                setFavoriteUsers(prev => 
-                    prev.includes(userId) 
-                        ? prev.filter(id => id !== userId)
-                        : [...prev, userId]
-                );
+                if (typeof (data as { is_favorite?: unknown })?.is_favorite === 'boolean') {
+                    const isFavorite = (data as { is_favorite: boolean }).is_favorite;
+                    setFavoriteUsers((prev) => {
+                        if (isFavorite) {
+                            return prev.includes(normalizedUserId) ? prev : [...prev, normalizedUserId];
+                        }
+                        return prev.filter((id) => id !== normalizedUserId);
+                    });
+                    return;
+                }
+
+                await loadUserPreferences();
             }
         } catch (error) {
             console.error('Failed to toggle favorite:', error);
@@ -1257,4 +1279,5 @@ export default function MessengerPage() {
         </AuthenticatedLayout>
     );
 
+    
 }
