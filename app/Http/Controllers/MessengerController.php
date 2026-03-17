@@ -412,25 +412,15 @@ class MessengerController extends Controller
             return response()->json(['error' => __('Permission denied')], 403);
         }
 
-            $message = Message::find($messageId);
+        $message = Message::find($messageId);
 
-            if (!$message || ($message->from_id !== $user->id && $message->to_id !== $user->id)) {
+        if (!$message || ($message->from_id !== $user->id && $message->to_id !== $user->id)) {
             return response()->json(['error' => __('Message not found')], 404);
         }
 
-            // Mark as deleted by current user
-        if ($message->from_id === $user->id) {
-            $message->update(['deleted_by_sender' => 1]);
-        } else {
-            $message->update(['deleted_by_receiver' => 1]);
-        }
-        $message->refresh();
-
-             // If both users deleted, hard delete
-        if ($message->deleted_by_sender && $message->deleted_by_receiver) {
-            $message->delete();
-        
-        }
+        // Permanently remove the message from the database.
+        // This ensures deleted messages do not re-appear after refreshing.
+        $message->delete();
 
         return response()->json(['success' => true]);
     }
