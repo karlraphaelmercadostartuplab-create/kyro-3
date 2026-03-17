@@ -312,13 +312,13 @@ class MediaController extends Controller
             $media = $query->firstOrFail();
 
             try {
-                $filePath = $media->getPath();
+                $filePath = $this->resolveMediaStoragePath($media);
 
-                if (!file_exists($filePath)) {
+                if (!$filePath) {
                     abort(404, __('File not found'));
                 }
 
-                return response()->download($filePath, $media->file_name);
+                return Storage::disk($media->disk)->download($filePath, $media->file_name);
             } catch (\Exception $e) {
                 abort(404, __('File storage unavailable'));
             }
@@ -356,7 +356,10 @@ class MediaController extends Controller
 
             try {
                 // Delete file from storage
-                Storage::disk($media->disk)->delete('media/' . $media->file_name);
+                $filePath = $this->resolveMediaStoragePath($media);
+                if ($filePath) {
+                    Storage::disk($media->disk)->delete($filePath);
+                }
                 $media->delete();
             } catch (\Exception $e) {
                 // If storage disk is unavailable, force delete from database
@@ -555,5 +558,26 @@ class MediaController extends Controller
         {
             return response()->json(['message' => __('Permission denied')], 403);
         }
+    }
+
+    private function resolveMediaStoragePath(Media $media): ?string
+    {
+        $relativePath = method_exists($media, 'getPathRelativeToRoot')
+            ? ltrim((string) $media->getPathRelativeToRoot(), '/\\')
+            : null;
+
+        $candidates = array_filter(array_unique([
+            $relativePath,
+            'media/' . $media->file_name,
+            'media/' . $media->model_id . '/' . $media->file_name,
+        ]));
+
+        foreach ($candidates as $candidate) {
+            if (Storage::disk($media->disk)->exists($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 }
