@@ -553,20 +553,33 @@ export default function MessengerPage() {
         if (!deleteConfirm) return;
 
         const messageIdToDelete = deleteConfirm.toString();
+
+        const headers = {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        };
         
         try {
-            const response = await fetch(route('messenger.delete-message', deleteConfirm), {
+            let response = await fetch(route('messenger.delete-message', deleteConfirm), {
                 method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-
-                }
+                headers
             });
+
+            if (!response.ok) {
+                response = await fetch(route('messenger.delete-message-post', deleteConfirm), {
+                    method: 'POST',
+                    headers
+                });
+            }
             
             if (!response.ok) {
                 throw new Error('Delete request failed');
+            }
+
+            const result = await response.json().catch(() => null) as { success?: boolean } | null;
+            if (!result?.success) {
+                throw new Error('Delete request did not persist');
             }
 
             let updatedMessages: Message[] = [];
