@@ -149,30 +149,6 @@ export default function MessengerPage() {
         }
     }, [messages, users]);
 
-    const loadUserPreferences = async () => {
-        try {
-            const [favResponse, pinnedResponse] = await Promise.all([
-                fetch(route('messenger.favorites'), {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    }
-                }),
-                fetch(route('messenger.pinned'), {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    }
-                })
-            ]);
-
-            const [favorites, pinned] = await Promise.all([favResponse.json(), pinnedResponse.json()]);
-            setFavoriteUsers(Array.isArray(favorites) ? favorites : []);
-            setPinnedUsers(normalizeIdList(Array.isArray(pinned) ? pinned : []));
-        } catch (error) {
-            console.error('Failed to load user preferences:', error);
-        }
-    };
 
     const parseJsonResponse = async (response: Response): Promise<unknown | null> => {
         const contentType = response.headers.get('content-type') || '';
@@ -205,12 +181,20 @@ export default function MessengerPage() {
                 if (Array.isArray(favorites)) {
                     setFavoriteUsers(normalizeIdList(favorites as Array<number | string>));
 
-                    }
+                     }
+            }
 
             if (pinnedResult.status === 'fulfilled') {
                 const pinned = await parseJsonResponse(pinnedResult.value);
                 if (Array.isArray(pinned)) {
                     setPinnedUsers(normalizeIdList(pinned as Array<number | string>));
+
+                    }
+            }
+        } catch (error) {
+            console.error('Failed to load user preferences:', error);
+        }
+    };
 
                     
 
