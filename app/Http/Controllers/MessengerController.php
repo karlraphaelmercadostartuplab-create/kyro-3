@@ -426,13 +426,12 @@ class MessengerController extends Controller
         }
         $message->refresh();
 
-
              // If both users deleted, hard delete
         if ($message->deleted_by_sender && $message->deleted_by_receiver) {
             $message->delete();
         
         }
-        
+
         return response()->json(['success' => true]);
     }
 
