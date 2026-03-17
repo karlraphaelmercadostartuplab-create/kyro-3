@@ -22,8 +22,16 @@ class StoreRoleRequest extends FormRequest
                 Rule::unique('roles', 'name')->where('created_by', creatorId())
             ],
             'label' => 'required|string|max:255',
-            'permissions' => 'array',
+            'permissions' => 'required|array|min:1',
             'permissions.*' => 'string|exists:permissions,name',
         ];
     }
+public function messages(): array
+    {
+        return [
+            'permissions.required' => __('Please select at least one permission.'),
+            'permissions.min' => __('Please select at least one permission.'),
+        ];
+    }
+
 }

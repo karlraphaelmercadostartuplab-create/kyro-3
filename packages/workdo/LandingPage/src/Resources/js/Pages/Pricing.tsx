@@ -318,3 +318,4 @@ export default function Pricing(props: PricingProps) {
         </div>
     );
 }
+

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Head, usePage, router } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
@@ -16,8 +16,8 @@ import { getImagePath, getAdminSetting } from '@/utils/helpers';
 
 interface Message {
     id: number | string;
-    sender_id: number;
-    receiver_id: number;
+    sender_id: number | string;
+    receiver_id: number | string;
     message: string;
     body?: string;
     attachment?: string;
@@ -80,6 +80,42 @@ export default function MessengerPage() {
     const selectedUserId = pageProps.selectedUserId;
     const auth = pageProps.auth;
 
+    const canDeleteMessages = auth.user?.permissions?.includes('delete-messages') || auth.user?.permissions?.includes('manage-messenger');
+
+    const normalizeUserId = (value: number | string | undefined | null): number | null => {
+        if (value === undefined || value === null) return null;
+        const parsed = Number(value);
+        return Number.isNaN(parsed) ? null : parsed;
+    };
+
+    const isCurrentUserMessage = (message: Message): boolean => {
+        const authUserId = normalizeUserId(auth.user?.id);
+        if (authUserId === null) return false;
+
+        const senderId = normalizeUserId(message.sender_id);
+        const nestedSenderId = normalizeUserId(message.sender?.id);
+
+        return senderId === authUserId || nestedSenderId === authUserId;
+    };
+
+    const normalizeIdList = (ids: Array<number | string>): number[] => {
+        return Array.from(new Set(
+            ids
+                .map((id) => normalizeUserId(id))
+                .filter((id): id is number => id !== null)
+        ));
+    };
+
+    const isUserPinned = (userId: number | string | undefined | null): boolean => {
+        const normalizedUserId = normalizeUserId(userId);
+        return normalizedUserId !== null && pinnedUsers.includes(normalizedUserId);
+    };
+
+    const isUserFavorite = (userId: number | string | undefined | null): boolean => {
+        const normalizedUserId = normalizeUserId(userId);
+        return normalizedUserId !== null && favoriteUsers.includes(normalizedUserId);
+    };
+
     const filteredUsers = useMemo(() => {
         const userList = usersState.length > 0 ? usersState : users;
         const searchLower = searchQuery.toLowerCase();
@@ -90,13 +126,13 @@ export default function MessengerPage() {
         );
         
         if (activeTab === 'favorites') {
-            filtered = filtered.filter((user: ChatUser) => favoriteUsers.includes(user.id));
+            filtered = filtered.filter((user: ChatUser) => isUserFavorite(user.id));
         }
         
         return filtered.sort((a: ChatUser, b: ChatUser) => {
             // Pinned users first
-            const aPinned = pinnedUsers.includes(a.id);
-            const bPinned = pinnedUsers.includes(b.id);
+            const aPinned = isUserPinned(a.id);
+            const bPinned = isUserPinned(b.id);
             if (aPinned !== bPinned) return aPinned ? -1 : 1;
             
             // Then by last message time
@@ -113,29 +149,60 @@ export default function MessengerPage() {
         }
     }, [messages, users]);
 
+
+    const parseJsonResponse = async (response: Response): Promise<unknown | null> => {
+        const contentType = response.headers.get('content-type') || '';
+        if (!response.ok || !contentType.includes('application/json')) {
+            return null;
+        }
+
+        return response.json().catch(() => null);
+    };
+
+    const loadUserPreferences = async () => {
+        try {
+            const [favoritesResult, pinnedResult] = await Promise.allSettled([
+                fetch(route('messenger.favorites'), {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                }),
+                fetch(route('messenger.pinned'), {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+            ]);
+
+            if (favoritesResult.status === 'fulfilled') {
+                const favorites = await parseJsonResponse(favoritesResult.value);
+                if (Array.isArray(favorites)) {
+                    setFavoriteUsers(normalizeIdList(favorites as Array<number | string>));
+
+                     }
+            }
+
+            if (pinnedResult.status === 'fulfilled') {
+                const pinned = await parseJsonResponse(pinnedResult.value);
+                if (Array.isArray(pinned)) {
+                    setPinnedUsers(normalizeIdList(pinned as Array<number | string>));
+
+                    }
+            }
+        } catch (error) {
+            console.error('Failed to load user preferences:', error);
+        }
+    };
+
     useEffect(() => {
-        // Load favorites on mount
-        Promise.all([
-            fetch(route('messenger.favorites'), {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            }),
-            fetch(route('messenger.pinned'), {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            })
-        ])
-        .then(([favResponse, pinnedResponse]) => Promise.all([favResponse.json(), pinnedResponse.json()]))
-        .then(([favorites, pinned]) => {
-            setFavoriteUsers(favorites);
-            setPinnedUsers(pinned);
-        })
-        .catch(error => console.error('Failed to load user preferences:', error));
+        loadUserPreferences();
     }, []);
+
+
+                    
+
 
     useEffect(() => {
         if (selectedUserId && users.length > 0) {
@@ -408,17 +475,45 @@ export default function MessengerPage() {
                 'Accept': 'application/json'
             },
             body: formData
-        }).then(response => {
+        }).then(async response => {
             if (!response.ok) {
                 setChatMessages(prev => prev.filter(msg => msg.id.toString() !== tempMessage.id.toString()));
-            } else {
-                // Update users list with latest message
-                setUsersState(prev => prev.map(user => 
-                    user.id === selectedUser.id 
-                        ? { ...user, last_message: { ...tempMessage, body: messageText || '📎 Attachment' } }
-                        : user
+            return;
+            }
+
+            const payload = await response.json().catch(() => null);
+            const savedMessage = payload?.data;
+
+            if (savedMessage?.id) {
+                setChatMessages(prev => prev.map(msg =>
+                    msg.id.toString() === tempMessage.id.toString()
+                        ? {
+                            ...msg,
+                            id: savedMessage.id,
+                            created_at: savedMessage.created_at || msg.created_at,
+                            updated_at: savedMessage.updated_at || msg.updated_at,
+                        }
+                        : msg
                 ));
             }
+            // Update users list with latest message
+            setUsersState(prev => prev.map(user => 
+                user.id === selectedUser.id 
+                    ? {
+                        ...user,
+                        last_message: {
+                            ...tempMessage,
+                            id: savedMessage?.id || tempMessage.id,
+                            body: messageText || '📎 Attachment',
+                            message: messageText || '📎 Attachment',
+                            created_at: savedMessage?.created_at || tempMessage.created_at,
+                            updated_at: savedMessage?.updated_at || tempMessage.updated_at,
+                        },
+                    }
+                    : user
+            ));
+
+
         }).catch(() => {
             setChatMessages(prev => prev.filter(msg => msg.id.toString() !== tempMessage.id.toString()));
         });
@@ -456,18 +551,59 @@ export default function MessengerPage() {
 
     const confirmDelete = async () => {
         if (!deleteConfirm) return;
+
+        const messageIdToDelete = deleteConfirm.toString();
+
+        const headers = {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        };
         
         try {
-            await fetch(route('messenger.delete-message', deleteConfirm), {
+            let response = await fetch(route('messenger.delete-message', deleteConfirm), {
                 method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                }
+                headers
             });
+
+            if (!response.ok) {
+                response = await fetch(route('messenger.delete-message-post', deleteConfirm), {
+                    method: 'POST',
+                    headers
+                });
+            }
             
-            setChatMessages(prev => prev.filter(msg => msg.id !== deleteConfirm));
+            if (!response.ok) {
+                throw new Error('Delete request failed');
+            }
+
+            const result = await response.json().catch(() => null) as { success?: boolean } | null;
+            if (!result?.success) {
+                throw new Error('Delete request did not persist');
+            }
+
+            let updatedMessages: Message[] = [];
+            setChatMessages(prev => {
+                updatedMessages = prev.filter(msg => msg.id.toString() !== messageIdToDelete);
+                return updatedMessages;
+            });
+
+            if (selectedUser) {
+                const latestMessage = updatedMessages[updatedMessages.length - 1];
+                setUsersState(prev => prev.map(user =>
+                    user.id === selectedUser.id
+                        ? {
+                            ...user,
+                            last_message: latestMessage
+                                ? { ...latestMessage, body: latestMessage.body ?? latestMessage.message }
+                                : undefined,
+                        }
+                        : user
+                ));
+            }
             setDeleteConfirm(null);
             setShowDeleteDialog(false);
+            setOpenDropdown(null);
         } catch (error) {
             console.error('Failed to delete message:', error);
         }
@@ -475,21 +611,38 @@ export default function MessengerPage() {
 
     const toggleFavorite = async (userId: number) => {
         try {
+
+            const normalizedUserId = normalizeUserId(userId);
+            if (normalizedUserId === null) {
+                return;
+            }
+
             const response = await fetch(route('messenger.toggle-favorite'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
                 },
-                body: JSON.stringify({ user_id: userId })
+                body: JSON.stringify({ user_id: normalizedUserId })
             });
+
+            const data = await response.json().catch(() => null);
             
             if (response.ok) {
-                setFavoriteUsers(prev => 
-                    prev.includes(userId) 
-                        ? prev.filter(id => id !== userId)
-                        : [...prev, userId]
-                );
+                if (typeof (data as { is_favorite?: unknown })?.is_favorite === 'boolean') {
+                    const isFavorite = (data as { is_favorite: boolean }).is_favorite;
+                    setFavoriteUsers((prev) => {
+                        if (isFavorite) {
+                            return prev.includes(normalizedUserId) ? prev : [...prev, normalizedUserId];
+                        }
+                        return prev.filter((id) => id !== normalizedUserId);
+                    });
+                    return;
+                }
+
+                await loadUserPreferences();
             }
         } catch (error) {
             console.error('Failed to toggle favorite:', error);
@@ -498,7 +651,12 @@ export default function MessengerPage() {
 
     const togglePin = async (userId: number) => {
         try {
-            if (!pinnedUsers.includes(userId) && pinnedUsers.length >= 3) {
+            const normalizedUserId = normalizeUserId(userId);
+            if (normalizedUserId === null) {
+                return;
+            }
+
+            if (!isUserPinned(normalizedUserId) && pinnedUsers.length >= 3) {
                 setShowPinLimitDialog(true);
                 return;
             }
@@ -511,16 +669,31 @@ export default function MessengerPage() {
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({ user_id: userId })
+                body: JSON.stringify({ user_id: normalizedUserId })
             });
             
-            if (response.ok) {
-                setPinnedUsers(prev => 
-                    prev.includes(userId) 
-                        ? prev.filter(id => id !== userId)
-                        : [...prev, userId]
-                );
+            const data = await response.json().catch(() => null);
+
+            if (!response.ok) {
+                if ((data as { error?: string })?.error?.includes('pin up to 3 chats')) {
+                    setShowPinLimitDialog(true);
+                }
+                return;
             }
+            if (typeof (data as { is_pinned?: unknown })?.is_pinned === 'boolean') {
+                const isPinned = (data as { is_pinned: boolean }).is_pinned;
+                setPinnedUsers((prev) => {
+                    if (isPinned) {
+                        return prev.includes(normalizedUserId) ? prev : [...prev, normalizedUserId];
+                    }
+                    return prev.filter((id) => id !== normalizedUserId);
+                });
+                return;
+            }
+
+            await loadUserPreferences();
+
+
         } catch (error) {
             console.error('Failed to toggle pin:', error);
         }
@@ -735,7 +908,7 @@ export default function MessengerPage() {
                                             selectedUser?.id === user.id 
                                                 ? 'bg-gray-100 border-r-4 border-primary' 
                                                 : 'hover:bg-gray-50'
-                                        } ${pinnedUsers.includes(user.id) ? 'bg-blue-50 border-l-2 border-blue-300' : ''}`}
+                                        } ${isUserPinned(user.id) ? 'bg-blue-50 border-l-2 border-blue-300' : ''}`}
                                     >
                                         <div className="relative">
                                             <Avatar className="h-12 w-12">
@@ -747,7 +920,7 @@ export default function MessengerPage() {
                                                     <UserIcon className="h-6 w-6 text-primary" />
                                                 </AvatarFallback>
                                             </Avatar>
-                                            {pinnedUsers.includes(user.id) && (
+                                            {isUserPinned(user.id) && (
                                                 <div className="absolute -top-1 -left-1 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
                                                     📌
                                                 </div>
@@ -793,10 +966,10 @@ export default function MessengerPage() {
                                                                 togglePin(user.id);
                                                             }}
                                                             className="h-6 w-6 p-0"
-                                                            title={pinnedUsers.includes(user.id) ? t('Unpin chat') : t('Pin chat')}
+                                                            title={isUserPinned(user.id) ? t('Unpin chat') : t('Pin chat')}
                                                         >
-                                                            <span className={`text-xs ${pinnedUsers.includes(user.id) ? 'text-blue-500' : 'text-gray-400'}`}>
-                                                                {pinnedUsers.includes(user.id) ? <PinOff className="h-3 w-3" /> : <Pin className="h-3 w-3" />}
+                                                            <span className={`text-xs ${isUserPinned(user.id) ? 'text-blue-500' : 'text-gray-400'}`}>
+                                                                {isUserPinned(user.id) ? <PinOff className="h-3 w-3" /> : <Pin className="h-3 w-3" />}
                                                             </span>
                                                         </Button>
                                                         {auth.user?.permissions?.includes('toggle-favorite-messages') && (
@@ -875,10 +1048,10 @@ export default function MessengerPage() {
                                 )}
                                 <div className="space-y-4 min-h-full">
                                     {chatMessages.length > 0 ? chatMessages.map((message: Message) => {
-                                        const isOwnMessage = message.sender_id === auth.user.id;
+                                        const isOwnMessage = Number(message.sender_id) === Number(auth.user.id);
                                         return (
                                             <div key={message.id} className={`group flex mb-2 items-end gap-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-                                                {!isOwnMessage && (auth.user?.permissions?.includes('delete-messages')) && (
+                                                {!isOwnMessage && (canDeleteMessages) && (
                                                     <div className="relative opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <Button
                                                             variant="ghost"
@@ -890,7 +1063,7 @@ export default function MessengerPage() {
                                                         </Button>
                                                         {openDropdown === message.id && (
                                                             <div className="absolute left-0 top-7 bg-white shadow-xl rounded-lg py-2 min-w-[140px] z-20 border">
-                                                                {auth.user?.permissions?.includes('delete-messages') && (
+                                                                {canDeleteMessages && (
                                                                     <button
                                                                         onClick={() => {
                                                                             handleDeleteMessage(message.id);
@@ -955,7 +1128,7 @@ export default function MessengerPage() {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                {isOwnMessage && (auth.user?.permissions?.includes('edit-messages') || auth.user?.permissions?.includes('delete-messages')) && (
+                                                {isOwnMessage && (auth.user?.permissions?.includes('edit-messages') || canDeleteMessages) && (
                                                     <div className="relative opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <Button
                                                             variant="ghost"
@@ -978,7 +1151,7 @@ export default function MessengerPage() {
                                                                         <Edit className="h-4 w-4 text-blue-500" /> {t('Edit')}
                                                                     </button>
                                                                 )}
-                                                                {auth.user?.permissions?.includes('delete-messages') && (
+                                                                {canDeleteMessages && (
                                                                     <button
                                                                         onClick={() => {
                                                                             handleDeleteMessage(message.id);
@@ -1118,4 +1291,6 @@ export default function MessengerPage() {
             />
         </AuthenticatedLayout>
     );
+
+    
 }

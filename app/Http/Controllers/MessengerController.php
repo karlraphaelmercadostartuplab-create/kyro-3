@@ -17,25 +17,56 @@ use App\Events\UserOffline;
 
 class MessengerController extends Controller
 {
+    /**
+     * Apply visibility rules for messenger contacts.
+     *
+     * In addition to permission-based user scope, we always include users
+     * who already have a conversation with the current user so existing
+     * chats never disappear for staff/client/vendor accounts.
+     */
+    private function applyMessengerVisibilityScope($userQuery, User $user)
+    {
+        $conversationPartnerIds = Message::query()
+            ->where(function ($query) use ($user) {
+                $query->where('from_id', $user->id)
+                    ->orWhere('to_id', $user->id);
+            })
+            ->get(['from_id', 'to_id'])
+            ->flatMap(function ($message) use ($user) {
+                return [$message->from_id, $message->to_id];
+            })
+            ->filter(fn ($id) => (int) $id !== (int) $user->id)
+            ->unique()
+            ->values()
+            ->all();
+
+        return $userQuery->where(function ($query) use ($user, $conversationPartnerIds) {
+            if ($user->type === 'superadmin') {
+                $query->where('creator_id', creatorId());
+            } elseif ($user->can('manage-any-users')) {
+                // Company or user with manage-any-users can see own + team users
+                $query->where('created_by', creatorId());
+            } elseif ($user->can('manage-own-users')) {
+                // Company or user with manage-own-users can see own users
+                $query->where('creator_id', $user->id);
+            } else {
+                // Default: only own company account
+                $query->where('id', creatorId());
+            }
+
+            if (!empty($conversationPartnerIds)) {
+                $query->orWhereIn('id', $conversationPartnerIds);
+            }
+        });
+    }
+
     public function index(Request $request)
     {
         $user = Auth::user();
         if ($user->can('manage-messenger')) {
             // Get all users except current user with their last message and online status
             $userQuery = User::where('id', '!=', $user->id);
-            // Filter by user permissions
-                if ($user->type === 'superadmin') {
-                    $userQuery->where('creator_id', creatorId());
-                } elseif ($user->can('manage-any-users')) {
-                    // Company or user with manage-any-users can see own + team users
-                    $userQuery->where('created_by', creatorId());
-                } elseif ($user->can('manage-own-users')) {
-                    // Company or user with manage-own-users can see own users
-                    $userQuery->where('creator_id', $user->id);
-                } else {
-                    // Default: only own users
-                    $userQuery->where('id', creatorId());
-                }
+            $this->applyMessengerVisibilityScope($userQuery, $user);
 
             
             $users = $userQuery->select('id', 'name', 'email', 'avatar', 'active_status')
@@ -45,10 +76,18 @@ class MessengerController extends Controller
                         $query->where('from_id', $user->id)->where('to_id', $chatUser->id);
                     })->orWhere(function ($query) use ($user, $chatUser) {
                         $query->where('from_id', $chatUser->id)->where('to_id', $user->id);
+                        })->where(function ($query) use ($user) {
+                        // Always hide messages deleted by the current user
+                        $query->where(function ($q) use ($user) {
+                            $q->where('from_id', $user->id)->where('deleted_by_sender', 0);
+                        })->orWhere(function ($q) use ($user) {
+                            $q->where('to_id', $user->id)->where('deleted_by_receiver', 0);
+                        });
                     })->latest()->first();
                     
                     $unreadCount = Message::where('from_id', $chatUser->id)
                         ->where('to_id', $user->id)
+                        ->where('deleted_by_receiver', 0)
                         ->where('seen', 0)
                         ->count();
                     
@@ -89,9 +128,9 @@ class MessengerController extends Controller
                     })->where(function ($query) use ($user) {
                         // Filter out messages deleted by current user
                         $query->where(function ($q) use ($user) {
-                            $q->where('from_id', $user->id)->where('deleted_by_sender', false);
+                            $q->where('from_id', $user->id)->where('deleted_by_sender', 0);
                         })->orWhere(function ($q) use ($user) {
-                            $q->where('to_id', $user->id)->where('deleted_by_receiver', false);
+                             $q->where('to_id', $user->id)->where('deleted_by_receiver', 0);
                         });
                     })->with(['fromUser', 'toUser'])
                     ->orderBy('created_at', 'asc')
@@ -186,7 +225,32 @@ class MessengerController extends Controller
             // Dispatch event for real-time updates
             event(new MessageSent($message, $receiverId));
 
-            return response()->json(['success' => true, 'message' => __('Message sent successfully!')]);
+            return response()->json([
+                'success' => true,
+                'message' => __('Message sent successfully!'),
+                'data' => [
+                    'id' => $message->id,
+                    'sender_id' => $message->from_id,
+                    'receiver_id' => $message->to_id,
+                    'body' => $message->body,
+                    'attachment' => $message->attachment,
+                    'is_read' => (bool) $message->seen,
+                    'created_at' => $message->created_at->toISOString(),
+                    'updated_at' => $message->updated_at->toISOString(),
+                    'sender' => [
+                        'id' => $message->fromUser->id,
+                        'name' => $message->fromUser->name,
+                        'email' => $message->fromUser->email,
+                        'avatar' => $message->fromUser->avatar,
+                    ],
+                    'receiver' => [
+                        'id' => $message->toUser->id,
+                        'name' => $message->toUser->name,
+                        'email' => $message->toUser->email,
+                        'avatar' => $message->toUser->avatar,
+                    ],
+                ],
+            ]);
         } else {
             return back()->with('error', __('Permission denied'));
         }
@@ -199,15 +263,7 @@ class MessengerController extends Controller
         // Apply same permission filtering as index method
         $userQuery = User::where('id', '!=', $user->id);
         
-        if ($user->type === 'superadmin') {
-            $userQuery->where('creator_id', creatorId());
-        } elseif ($user->can('manage-any-users')) {
-            $userQuery->where('created_by', creatorId());
-        } elseif ($user->can('manage-own-users')) {
-            $userQuery->where('creator_id', $user->id);
-        } else {
-            $userQuery->where('id', creatorId());
-        }
+        $this->applyMessengerVisibilityScope($userQuery, $user);
         
         $users = $userQuery->select('id', 'name', 'email', 'avatar', 'last_seen_at')
             ->get()
@@ -241,9 +297,9 @@ class MessengerController extends Controller
         })->where(function ($query) use ($user) {
             // Filter out messages deleted by current user
             $query->where(function ($q) use ($user) {
-                $q->where('from_id', $user->id)->where('deleted_by_sender', false);
+                $q->where('from_id', $user->id)->where('deleted_by_sender', 0);
             })->orWhere(function ($q) use ($user) {
-                $q->where('to_id', $user->id)->where('deleted_by_receiver', false);
+                $q->where('to_id', $user->id)->where('deleted_by_receiver', 0);
             });
         })->orderBy('created_at', 'desc')
         ->paginate($perPage, ['*'], 'page', $page);
@@ -297,7 +353,7 @@ class MessengerController extends Controller
 
     public function toggleFavorite(Request $request)
     {
-        if (Auth::user()->can('toggle-favorite-messages')) {        
+        if (Auth::user()->can('toggle-favorite-messages')) {      
             $request->validate([
                 'user_id' => 'required|exists:users,id',
             ], [
@@ -325,6 +381,11 @@ class MessengerController extends Controller
 
             return response()->json(['is_favorite' => $isFavorite]);
         } else {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'message' => __('Permission denied'),
+                ], 403);
+            }
             return back()->with('error', __('Permission denied'));
         }
     }
@@ -370,31 +431,21 @@ class MessengerController extends Controller
     public function deleteMessage($messageId)
     {
         $user = Auth::user();
-        if ($user->can('delete-messages')) {  
-            $message = Message::find($messageId);
-
-            if (!$message || ($message->from_id !== $user->id && $message->to_id !== $user->id)) {
-                return response()->json(['error' => __('Message not found')], 404);
-            }
-
-            // Mark as deleted by current user
-            if ($message->from_id === $user->id) {
-                $message->deleted_by_sender = true;
-            } else {
-                $message->deleted_by_receiver = true;
-            }
-
-            // If both users deleted, hard delete
-            if ($message->deleted_by_sender && $message->deleted_by_receiver) {
-                $message->delete();
-            } else {
-                $message->save();
-            }
-
-            return response()->json(['success' => true]);
-        } else {
-            return back()->with('error', __('Permission denied'));
+        if (!$user->can('delete-messages') && !$user->can('manage-messenger')) {
+            return response()->json(['error' => __('Permission denied')], 403);
         }
+
+        $message = Message::find($messageId);
+
+        if (!$message || ($message->from_id !== $user->id && $message->to_id !== $user->id)) {
+            return response()->json(['error' => __('Message not found')], 404);
+        }
+
+        // Permanently remove the message from the database.
+        // This ensures deleted messages do not re-appear after refreshing.
+        $message->delete();
+
+        return response()->json(['success' => true]);
     }
 
     public function updatePresence(Request $request)
@@ -430,15 +481,7 @@ class MessengerController extends Controller
         $user = Auth::user();
         $userQuery = User::where('id', '!=', $user->id);
         
-        if ($user->type === 'superadmin') {
-            $userQuery->where('creator_id', creatorId());
-        } elseif ($user->can('manage-any-users')) {
-            $userQuery->where('created_by', creatorId());
-        } elseif ($user->can('manage-own-users')) {
-            $userQuery->where('creator_id', $user->id);
-        } else {
-            $userQuery->where('id', creatorId());
-        }
+       $this->applyMessengerVisibilityScope($userQuery, $user);
         
         $users = $userQuery->get(['id', 'name'])->map(function ($chatUser) {
             return [
@@ -453,7 +496,7 @@ class MessengerController extends Controller
 
     public function togglePin(Request $request)
     {
-        if (Auth::user()->can('toggle-pinned-messages')) { 
+        if (Auth::user()->can('toggle-pinned-messages')) {
             $request->validate([
                 'user_id' => 'required|exists:users,id',
             ], [
@@ -485,6 +528,11 @@ class MessengerController extends Controller
 
             return response()->json(['is_pinned' => $isPinned]);
         } else {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'message' => __('Permission denied'),
+                ], 403);
+            }
             return back()->with('error', __('Permission denied'));
         }
     }
