@@ -315,6 +315,7 @@ export default function MediaLibraryDemo() {
   const totalPages = Math.ceil(filteredMedia.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentMedia = filteredMedia.slice(startIndex, startIndex + itemsPerPage);
+  const isShowingMediaFiles = currentDirectory !== null || showAllFiles;
 
   const allFilesFolder = useMemo(() => (
     <div
@@ -768,7 +769,7 @@ export default function MediaLibraryDemo() {
                 </div>
 
                 {/* Pagination */}
-                {totalPages > 1 && (
+                {isShowingMediaFiles && totalPages > 1 && (
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t">
                     <div className="text-sm text-muted-foreground">
                       {t('Showing')} <span className="font-semibold">{startIndex + 1}</span> {t('to')} <span className="font-semibold">{Math.min(startIndex + itemsPerPage, filteredMedia.length)}</span> {t('of')} <span className="font-semibold">{filteredMedia.length}</span> {t('files')}
