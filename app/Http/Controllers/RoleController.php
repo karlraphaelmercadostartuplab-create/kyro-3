@@ -6,6 +6,7 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use App\Http\Requests\StoreRoleRequest;
 use App\Http\Requests\UpdateRoleRequest;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -18,12 +19,36 @@ class RoleController extends Controller
                 ->where('created_by', creatorId())
                 ->when(request('name'), fn($q) => $q->where('name', 'like', '%' . request('name') . '%'))
                 ->when(request('sort'), fn($q) => $q->orderBy(request('sort'), request('direction', 'asc')))
-                ->with(['users' => function($query) {
-                    $query->select('id', 'name')->limit(5);
+                ->with(['users' => function ($query) {
+                    $query->where('created_by', creatorId());
                 }])
                 ->withCount('permissions')
                 ->paginate(10)
                 ->withQueryString();
+
+                $usersByType = User::query()
+                ->where('created_by', creatorId())
+                ->select('id', 'name', 'type')
+                ->get()
+                ->groupBy(fn ($user) => strtolower((string) $user->type));
+
+            $roles->getCollection()->transform(function ($role) use ($usersByType) {
+                $matchedTypes = collect([$role->name, $role->label])
+                    ->filter()
+                    ->map(fn ($value) => strtolower((string) $value))
+                    ->unique();
+
+                $typedUsers = $matchedTypes
+                    ->flatMap(fn ($type) => $usersByType->get($type, collect()))
+                    ->unique('id')
+                    ->values();
+
+                $mergedUsers = $role->users->merge($typedUsers)->unique('id')->values();
+
+                $role->setRelation('users', $mergedUsers);
+
+                return $role;
+            });
 
             return Inertia::render('roles/index', [
                 'roles' => $roles,

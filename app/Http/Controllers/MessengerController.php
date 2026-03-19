@@ -396,6 +396,7 @@ class MessengerController extends Controller
         
         $favoriteIds = Favorite::where('user_id', $user->id)
             ->pluck('favorite_id')
+            ->map(fn ($id) => (int) $id)
             ->toArray();
             
         return response()->json($favoriteIds);
@@ -542,6 +543,7 @@ class MessengerController extends Controller
         $user = Auth::user();
         $pinnedIds = Pinned::where('user_id', $user->id)
             ->pluck('pinned_id')
+            ->map(fn ($id) => (int) $id)
             ->toArray();
         return response()->json($pinnedIds);
     }

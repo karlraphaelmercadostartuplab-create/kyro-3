@@ -193,6 +193,8 @@ Route::middleware(['auth', 'verified', 'PlanModuleCheck'])->group(function () {
     Route::get('media/{id}/download', [MediaController::class, 'download'])->name('media.download');
     Route::delete('media/{id}', [MediaController::class, 'destroy'])->name('media.destroy');
     Route::post('media/directories', [MediaController::class, 'createDirectory'])->name('media.directories.create');
+    Route::put('media/directories/{id}', [MediaController::class, 'updateDirectory'])->name('media.directories.update');
+    Route::delete('media/directories/{id}', [MediaController::class, 'destroyDirectory'])->name('media.directories.destroy');
     Route::patch('media/{id}/directory', [MediaController::class, 'updateMediaDirectory'])->name('media.directory.update');
 });
 

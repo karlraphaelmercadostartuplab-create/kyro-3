@@ -4,6 +4,7 @@ import { Head } from '@inertiajs/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +42,8 @@ export default function MediaLibraryDemo() {
   const [newDirectoryName, setNewDirectoryName] = useState('');
   const [editingDirectory, setEditingDirectory] = useState<number | null>(null);
   const [editDirectoryName, setEditDirectoryName] = useState('');
+  const [mediaPendingDelete, setMediaPendingDelete] = useState<MediaItem | null>(null);
+  const [isDeletingMedia, setIsDeletingMedia] = useState(false);
 
   const [infoModalOpen, setInfoModalOpen] = useState(false);
   const [selectedMediaInfo, setSelectedMediaInfo] = useState<MediaItem | null>(null);
@@ -248,9 +251,10 @@ export default function MediaLibraryDemo() {
     }
   };
 
-  const deleteMedia = async (id: number) => {
+  const deleteMedia = async (item: MediaItem) => {
+    setIsDeletingMedia(true);
     try {
-      const response = await fetch(route('media.destroy', id), {
+      const response = await fetch(route('media.destroy', item.id), {
         method: 'DELETE',
         headers: {
           'X-CSRF-TOKEN': csrfToken,
@@ -260,13 +264,16 @@ export default function MediaLibraryDemo() {
       });
       
       if (response.ok) {
-        setMedia(prev => prev.filter(item => item.id !== id));
+        setMedia(prev => prev.filter(mediaItem => mediaItem.id !== item.id));
         toast.success('Media deleted successfully');
       } else {
         toast.error('Failed to delete media');
       }
     } catch (error) {
       toast.error('Error deleting media');
+    } finally {
+      setIsDeletingMedia(false);
+      setMediaPendingDelete(null);
     }
   };
 
@@ -312,9 +319,18 @@ export default function MediaLibraryDemo() {
     return <div className="h-4 w-4 bg-gray-500 rounded text-white text-xs flex items-center justify-center font-bold">FILE</div>;
   };
 
+  const totalStorageUsed = useMemo(() => filteredMedia.reduce((acc, item) => acc + item.size, 0), [filteredMedia]);
+  const folderCount = useMemo(() => {
+    if (currentDirectory !== null || showAllFiles) return 0;
+
+    return directories.length + 1;
+  }, [currentDirectory, showAllFiles, directories.length]);
+  const imageCount = useMemo(() => filteredMedia.filter(item => item.mime_type.startsWith('image/')).length, [filteredMedia]);
+
   const totalPages = Math.ceil(filteredMedia.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentMedia = filteredMedia.slice(startIndex, startIndex + itemsPerPage);
+  const isShowingMediaFiles = currentDirectory !== null || showAllFiles;
 
   const allFilesFolder = useMemo(() => (
     <div
@@ -521,12 +537,21 @@ export default function MediaLibraryDemo() {
               </div>
               
               {/* Stats Section */}
-              <div className="flex gap-6 items-center">
+              <div className="flex flex-wrap gap-6 items-center">
                 <div className="flex items-center gap-2">
                   <div className="p-1.5 bg-primary/10 rounded-md">
                     <ImageIcon className="h-4 w-4 text-primary" />
                   </div>
                   <span className="text-sm font-semibold">{filteredMedia.length} {t('Files')}</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-amber-500/10 rounded-md">
+                    <Folder className="h-4 w-4 text-amber-600" />
+                  </div>
+                  <span className="text-sm font-semibold">
+                    {folderCount} {folderCount === 1 ? 'Folder' : 'Folders'}
+                  </span>
                 </div>
                 
                 <div className="flex items-center gap-2">
@@ -534,7 +559,7 @@ export default function MediaLibraryDemo() {
                     <HardDrive className="h-4 w-4 text-green-600" />
                   </div>
                   <span className="text-sm font-semibold">
-                    {formatFileSize(useMemo(() => filteredMedia.reduce((acc, item) => acc + item.size, 0), [filteredMedia]))}
+                    {formatFileSize(totalStorageUsed)}
                   </span>
                 </div>
                 
@@ -543,7 +568,7 @@ export default function MediaLibraryDemo() {
                     <ImageIcon className="h-4 w-4 text-primary" />
                   </div>
                   <span className="text-sm font-semibold">
-                    {filteredMedia.filter(item => item.mime_type.startsWith('image/')).length} {t('Images')}
+                    {imageCount} {t('Images')}
                   </span>
                 </div>
               </div>
@@ -725,7 +750,7 @@ export default function MediaLibraryDemo() {
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem 
-                                  onClick={() => deleteMedia(item.id)}
+                                  onClick={() => setMediaPendingDelete(item)}
                                   className="text-destructive focus:text-destructive"
                                 >
                                   <X className="h-4 w-4 mr-2" />
@@ -768,7 +793,7 @@ export default function MediaLibraryDemo() {
                 </div>
 
                 {/* Pagination */}
-                {totalPages > 1 && (
+                {isShowingMediaFiles && totalPages > 1 && (
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t">
                     <div className="text-sm text-muted-foreground">
                       {t('Showing')} <span className="font-semibold">{startIndex + 1}</span> {t('to')} <span className="font-semibold">{Math.min(startIndex + itemsPerPage, filteredMedia.length)}</span> {t('of')} <span className="font-semibold">{filteredMedia.length}</span> {t('files')}
@@ -1008,6 +1033,24 @@ export default function MediaLibraryDemo() {
             )}
           </DialogContent>
         </Dialog>
+        <ConfirmationDialog
+          open={mediaPendingDelete !== null}
+          onOpenChange={(open) => {
+            if (!open && !isDeletingMedia) {
+              setMediaPendingDelete(null);
+            }
+          }}
+          title={t('Delete')}
+          message={mediaPendingDelete ? `Are you sure you want to delete "${mediaPendingDelete.name}"?` : 'Are you sure you want to delete this file?'}
+          confirmText={isDeletingMedia ? t('Deleting...') : t('Delete')}
+          cancelText={t('Cancel')}
+          variant="destructive"
+          onConfirm={() => {
+            if (mediaPendingDelete && !isDeletingMedia) {
+              deleteMedia(mediaPendingDelete);
+            }
+          }}
+        />
       </div>
     </AuthenticatedLayout>
   );
