@@ -319,6 +319,24 @@ export default function MediaLibraryDemo() {
     return <div className="h-4 w-4 bg-gray-500 rounded text-white text-xs flex items-center justify-center font-bold">FILE</div>;
   };
 
+  const getFileTypeLabel = (item: MediaItem) => {
+    const extension = item.file_name.split('.').pop()?.trim();
+    if (extension) {
+      return extension.toUpperCase().slice(0, 12);
+    }
+
+    const subtype = item.mime_type.split('/')[1]?.trim();
+    if (!subtype) {
+      return 'FILE';
+    }
+
+    if (subtype.includes('word') || subtype.includes('document')) return 'DOC';
+    if (subtype.includes('sheet') || subtype.includes('excel') || subtype.includes('csv')) return 'CSV';
+    if (subtype.includes('presentation') || subtype.includes('powerpoint')) return 'PPT';
+
+    return subtype.toUpperCase().slice(0, 12);
+  };
+
   const totalStorageUsed = useMemo(() => filteredMedia.reduce((acc, item) => acc + item.size, 0), [filteredMedia]);
   const folderCount = useMemo(() => {
     if (currentDirectory !== null || showAllFiles) return 0;
@@ -720,23 +738,23 @@ export default function MediaLibraryDemo() {
                               {getFileIcon(item.mime_type)}
                             </div>
                             <div className="text-xs text-center font-medium text-muted-foreground truncate w-full">
-                              {item.mime_type.split('/')[1]?.toUpperCase() || 'FILE'}
+                              {getFileTypeLabel(item)}
                             </div>
                           </div>
                         )}
                         
                         {/* Overlay with Actions */}
-                        <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/10 transition-all duration-200" />
+                        <div className="pointer-events-none absolute inset-0 z-0 bg-primary/0 group-hover:bg-primary/10 transition-all duration-200" />
                         
                         {/* Action Dropdown */}
                         {!infoModalOpen && !isUploadModalOpen && (
-                          <div className="absolute top-2 right-2">
+                          <div className="absolute top-2 right-2 z-20">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
                                   size="sm"
                                   variant="secondary"
-                                  className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0 bg-background/95 hover:bg-background shadow-md"
+                                  className="h-8 w-8 p-0 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100 bg-background/95 hover:bg-background shadow-md"
                                 >
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
@@ -768,9 +786,9 @@ export default function MediaLibraryDemo() {
                         )}
                         
                         {/* File Type Badge */}
-                        <div className="absolute top-2 left-2">
-                          <Badge variant="secondary" className="text-xs bg-background/95">
-                            {item.mime_type.split('/')[1].toUpperCase()}
+                        <div className="pointer-events-none absolute top-2 left-2 z-10 max-w-[calc(100%-4rem)]">
+                          <Badge variant="secondary" className="max-w-full truncate whitespace-nowrap text-xs bg-background/95">
+                            {getFileTypeLabel(item)}
                           </Badge>
                         </div>
                       </div>
@@ -966,7 +984,7 @@ export default function MediaLibraryDemo() {
                         {getFileIcon(selectedMediaInfo.mime_type)}
                       </div>
                       <div className="text-sm font-medium text-muted-foreground">
-                        {selectedMediaInfo.mime_type.split('/')[1]?.toUpperCase() || 'FILE'}
+                        {getFileTypeLabel(selectedMediaInfo)}
                       </div>
                     </div>
                   )}
