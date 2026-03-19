@@ -320,7 +320,11 @@ export default function MediaLibraryDemo() {
   };
 
   const totalStorageUsed = useMemo(() => filteredMedia.reduce((acc, item) => acc + item.size, 0), [filteredMedia]);
-  const folderCount = currentDirectory === null && !showAllFiles ? directories.length : 0;
+  const folderCount = useMemo(() => {
+    if (currentDirectory !== null || showAllFiles) return 0;
+
+    return directories.length + 1;
+  }, [currentDirectory, showAllFiles, directories.length]);
   const imageCount = useMemo(() => filteredMedia.filter(item => item.mime_type.startsWith('image/')).length, [filteredMedia]);
 
   const totalPages = Math.ceil(filteredMedia.length / itemsPerPage);
