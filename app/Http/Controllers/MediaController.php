@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MediaDeletionHistory;
 use App\Models\MediaDirectory;
 use App\Models\User;
 use App\Services\StorageConfigService;
@@ -25,37 +24,6 @@ class MediaController extends Controller
         }
 
     }
-
-    public function history()
-    {
-        if(Auth::user()->can('manage-media')){
-            $histories = MediaDeletionHistory::with('user')
-                ->when(Auth::user()->type !== 'superadmin', fn($q) => $q->where('created_by', creatorId()))
-                ->when(request('search'), function ($query) {
-                    $search = request('search');
-
-                    $query->where(function ($subQuery) use ($search) {
-                        $subQuery->where('name', 'like', '%' . $search . '%')
-                            ->orWhere('file_name', 'like', '%' . $search . '%')
-                            ->orWhereHas('user', fn($userQuery) => $userQuery->where('name', 'like', '%' . $search . '%'));
-                    });
-                })
-                ->when(request('sort'), fn($q) => $q->orderBy(request('sort'), request('direction', 'asc')), fn($q) => $q->latest('deleted_at'))
-                ->paginate(request('per_page', 10))
-                ->withQueryString();
-
-            return Inertia::render('media-history', [
-                'histories' => $histories,
-            ]);
-        }
-        else
-        {
-            return back()->with('error', __('Permission denied'));
-        }
-    }
-
-
-
     public function index()
     {
         if(Auth::user()->can('manage-media')){
@@ -177,7 +145,15 @@ class MediaController extends Controller
             }
 
             $config = StorageConfigService::getStorageConfig();
-            $validationRules = StorageConfigService::getFileValidationRules();
+            $allowedExtensions = array_filter(array_map('trim', explode(',', strtolower($config['allowed_file_types'] ?? ''))));
+
+            if (!in_array('docx', $allowedExtensions, true)) {
+                $allowedExtensions[] = 'docx';
+            }
+
+            $allowedExtensions = array_values(array_unique($allowedExtensions));
+            $allowedTypes = implode(',', $allowedExtensions);
+            $validationRules = ['max:' . ($config['max_file_size_kb'] ?? 2048), 'extensions:' . $allowedTypes];
 
             // Custom validation with user-friendly messages
             $validator = \Validator::make($request->all(), [
@@ -187,21 +163,18 @@ class MediaController extends Controller
                 'files.required' => __('Please select at least one file to upload.'),
                 'files.array' => __('Files must be provided as an array.'),
                 'files.*.file' => __('Each item must be a valid file.'),
-                'files.*.mimes' => __('Only specified file types are allowed: :type',[
-                        'type' => isset($config['allowed_file_types']) && $config['allowed_file_types']
-                            ? strtoupper(str_replace(',', ', ', $config['allowed_file_types']))
-                            : __('Please check storage settings')
-                    ])
-                    ,
+                'files.*.extensions' => __('Only specified file types are allowed: :type',[
+                        'type' => strtoupper(str_replace(',', ', ', $allowedTypes))
+                    ]),
                 'files.*.max' => __('File size cannot exceed :max KB.', ['max' => $config['max_file_size_kb']]),
             ]);
 
             // Additional file validation
             foreach ($request->file('files') as $file) {
                 $extension = strtolower($file->getClientOriginalExtension());
-                $allowedExtensions = array_map('trim', explode(',', strtolower($config['allowed_file_types'])));
+                
 
-                if (!in_array($extension, $allowedExtensions)) {
+                if (!in_array($extension, $allowedExtensions, true)) {
                     return response()->json([
                         'message' => __('File type not allowed: :type', ['type' => strtoupper($extension)]),
                         'errors' => [__('Only specified file types are allowed')]
@@ -384,21 +357,7 @@ class MediaController extends Controller
             }
 
             $media = $query->firstOrFail();
-            $directory = $media->directory_id ? MediaDirectory::find($media->directory_id) : null;
-
-            MediaDeletionHistory::create([
-                'media_id' => $media->id,
-                'user_id' => auth()->id(),
-                'created_by' => creatorId(),
-                'directory_id' => $media->directory_id,
-                'directory_name' => $directory?->name,
-                'name' => $media->name,
-                'file_name' => $media->file_name,
-                'mime_type' => $media->mime_type,
-                'disk' => $media->disk,
-                'size' => $media->size,
-                'deleted_at' => now(),
-            ]);
+            $fileSize = $media->size;
 
             try {
                 // Delete file from storage
