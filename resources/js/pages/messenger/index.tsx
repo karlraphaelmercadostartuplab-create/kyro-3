@@ -166,13 +166,17 @@ export default function MessengerPage() {
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'application/json'
-                    }
+                    },
+                    credentials: 'same-origin',
+                    cache: 'no-store'
                 }),
                 fetch(route('messenger.pinned'), {
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'application/json'
-                    }
+                    },
+                    credentials: 'same-origin',
+                    cache: 'no-store'
                 })
             ]);
 
@@ -981,14 +985,14 @@ export default function MessengerPage() {
                                                                     toggleFavorite(user.id);
                                                                 }}
                                                                 className="h-6 w-6 p-0"
-                                                                title={favoriteUsers.includes(user.id) ? t('Remove from favorites') : t('Add to favorites')}
+                                                                title={isUserFavorite(user.id) ? t('Remove from favorites') : t('Add to favorites')}
                                                             >
                                                                 <span className={`text-base transition-colors ${
-                                                                    favoriteUsers.includes(user.id) 
+                                                                    isUserFavorite(user.id) 
                                                                         ? 'text-yellow-500 hover:text-yellow-600' 
                                                                         : 'text-gray-400 hover:text-yellow-500'
                                                                 }`}>
-                                                                    <Star className={`h-4 w-4 ${favoriteUsers.includes(user.id) ? 'fill-current' : ''}`} />
+                                                                    <Star className={`h-4 w-4 ${isUserFavorite(user.id) ? 'fill-current' : ''}`} />
                                                                 </span>
                                                             </Button>
                                                         )}
