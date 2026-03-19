@@ -4,6 +4,7 @@ import { Head } from '@inertiajs/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +42,8 @@ export default function MediaLibraryDemo() {
   const [newDirectoryName, setNewDirectoryName] = useState('');
   const [editingDirectory, setEditingDirectory] = useState<number | null>(null);
   const [editDirectoryName, setEditDirectoryName] = useState('');
+  const [mediaPendingDelete, setMediaPendingDelete] = useState<MediaItem | null>(null);
+  const [isDeletingMedia, setIsDeletingMedia] = useState(false);
 
   const [infoModalOpen, setInfoModalOpen] = useState(false);
   const [selectedMediaInfo, setSelectedMediaInfo] = useState<MediaItem | null>(null);
@@ -248,9 +251,10 @@ export default function MediaLibraryDemo() {
     }
   };
 
-  const deleteMedia = async (id: number) => {
+  const deleteMedia = async (item: MediaItem) => {
+    setIsDeletingMedia(true);
     try {
-      const response = await fetch(route('media.destroy', id), {
+      const response = await fetch(route('media.destroy', item.id), {
         method: 'DELETE',
         headers: {
           'X-CSRF-TOKEN': csrfToken,
@@ -260,13 +264,16 @@ export default function MediaLibraryDemo() {
       });
       
       if (response.ok) {
-        setMedia(prev => prev.filter(item => item.id !== id));
+        setMedia(prev => prev.filter(mediaItem => mediaItem.id !== item.id));
         toast.success('Media deleted successfully');
       } else {
         toast.error('Failed to delete media');
       }
     } catch (error) {
       toast.error('Error deleting media');
+    } finally {
+      setIsDeletingMedia(false);
+      setMediaPendingDelete(null);
     }
   };
 
@@ -726,7 +733,7 @@ export default function MediaLibraryDemo() {
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem 
-                                  onClick={() => deleteMedia(item.id)}
+                                  onClick={() => setMediaPendingDelete(item)}
                                   className="text-destructive focus:text-destructive"
                                 >
                                   <X className="h-4 w-4 mr-2" />
@@ -1009,6 +1016,24 @@ export default function MediaLibraryDemo() {
             )}
           </DialogContent>
         </Dialog>
+        <ConfirmationDialog
+          open={mediaPendingDelete !== null}
+          onOpenChange={(open) => {
+            if (!open && !isDeletingMedia) {
+              setMediaPendingDelete(null);
+            }
+          }}
+          title={t('Delete')}
+          message={mediaPendingDelete ? `Are you sure you want to delete "${mediaPendingDelete.name}"?` : 'Are you sure you want to delete this file?'}
+          confirmText={isDeletingMedia ? t('Deleting...') : t('Delete')}
+          cancelText={t('Cancel')}
+          variant="destructive"
+          onConfirm={() => {
+            if (mediaPendingDelete && !isDeletingMedia) {
+              deleteMedia(mediaPendingDelete);
+            }
+          }}
+        />
       </div>
     </AuthenticatedLayout>
   );
