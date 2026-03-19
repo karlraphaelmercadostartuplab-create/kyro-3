@@ -319,6 +319,10 @@ export default function MediaLibraryDemo() {
     return <div className="h-4 w-4 bg-gray-500 rounded text-white text-xs flex items-center justify-center font-bold">FILE</div>;
   };
 
+  const totalStorageUsed = useMemo(() => filteredMedia.reduce((acc, item) => acc + item.size, 0), [filteredMedia]);
+  const folderCount = currentDirectory === null && !showAllFiles ? directories.length : 0;
+  const imageCount = useMemo(() => filteredMedia.filter(item => item.mime_type.startsWith('image/')).length, [filteredMedia]);
+
   const totalPages = Math.ceil(filteredMedia.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentMedia = filteredMedia.slice(startIndex, startIndex + itemsPerPage);
@@ -529,12 +533,21 @@ export default function MediaLibraryDemo() {
               </div>
               
               {/* Stats Section */}
-              <div className="flex gap-6 items-center">
+              <div className="flex flex-wrap gap-6 items-center">
                 <div className="flex items-center gap-2">
                   <div className="p-1.5 bg-primary/10 rounded-md">
                     <ImageIcon className="h-4 w-4 text-primary" />
                   </div>
                   <span className="text-sm font-semibold">{filteredMedia.length} {t('Files')}</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-amber-500/10 rounded-md">
+                    <Folder className="h-4 w-4 text-amber-600" />
+                  </div>
+                  <span className="text-sm font-semibold">
+                    {folderCount} {folderCount === 1 ? 'Folder' : 'Folders'}
+                  </span>
                 </div>
                 
                 <div className="flex items-center gap-2">
@@ -542,7 +555,7 @@ export default function MediaLibraryDemo() {
                     <HardDrive className="h-4 w-4 text-green-600" />
                   </div>
                   <span className="text-sm font-semibold">
-                    {formatFileSize(useMemo(() => filteredMedia.reduce((acc, item) => acc + item.size, 0), [filteredMedia]))}
+                    {formatFileSize(totalStorageUsed)}
                   </span>
                 </div>
                 
@@ -551,7 +564,7 @@ export default function MediaLibraryDemo() {
                     <ImageIcon className="h-4 w-4 text-primary" />
                   </div>
                   <span className="text-sm font-semibold">
-                    {filteredMedia.filter(item => item.mime_type.startsWith('image/')).length} {t('Images')}
+                    {imageCount} {t('Images')}
                   </span>
                 </div>
               </div>
