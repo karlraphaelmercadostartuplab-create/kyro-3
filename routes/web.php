@@ -188,6 +188,7 @@ Route::middleware(['auth', 'verified', 'PlanModuleCheck'])->group(function () {
 
     // Media Library API routes
     Route::get('media-library', [MediaController::class, 'page'])->name('media-library');
+    Route::get('media-library/history', [MediaController::class, 'history'])->name('media.history');
     Route::get('media', [MediaController::class, 'index'])->name('media.index');
     Route::post('media/batch', [MediaController::class, 'batchStore'])->name('media.batch');
     Route::get('media/{id}/download', [MediaController::class, 'download'])->name('media.download');

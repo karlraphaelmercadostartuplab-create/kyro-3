@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo, memo } from 'react';
 import AuthenticatedLayout from '@/layouts/authenticated-layout';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { usePage } from '@inertiajs/react';
-import { Upload, Search, X, Plus, Info, Copy, Download, MoreHorizontal, Image as ImageIcon, Calendar, HardDrive, BarChart3, Edit, Trash2, Folder, FolderOpen, Home, ArrowLeft } from 'lucide-react';
+import { Upload, Search, X, Plus, Info, Copy, Download, MoreHorizontal, Image as ImageIcon, Calendar, HardDrive, Edit, Trash2, Folder, FolderOpen, Home, ArrowLeft, History } from 'lucide-react';
 
 interface MediaItem {
   id: number;
@@ -385,6 +385,12 @@ export default function MediaLibraryDemo() {
       pageTitle={t('Manage Media Library')}
       pageActions={
         <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link href={route('media.history')}>
+              <History className="h-4 w-4 mr-2" />
+              {t('Deletion History')}
+            </Link>
+          </Button>
           <Button 
             variant="outline"
             onClick={() => setShowCreateDirectory(true)}

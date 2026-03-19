@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MediaDeletionHistory;
 use App\Models\MediaDirectory;
 use App\Models\User;
 use App\Services\StorageConfigService;
@@ -24,6 +25,37 @@ class MediaController extends Controller
         }
 
     }
+
+    public function history()
+    {
+        if(Auth::user()->can('manage-media')){
+            $histories = MediaDeletionHistory::with('user')
+                ->when(Auth::user()->type !== 'superadmin', fn($q) => $q->where('created_by', creatorId()))
+                ->when(request('search'), function ($query) {
+                    $search = request('search');
+
+                    $query->where(function ($subQuery) use ($search) {
+                        $subQuery->where('name', 'like', '%' . $search . '%')
+                            ->orWhere('file_name', 'like', '%' . $search . '%')
+                            ->orWhereHas('user', fn($userQuery) => $userQuery->where('name', 'like', '%' . $search . '%'));
+                    });
+                })
+                ->when(request('sort'), fn($q) => $q->orderBy(request('sort'), request('direction', 'asc')), fn($q) => $q->latest('deleted_at'))
+                ->paginate(request('per_page', 10))
+                ->withQueryString();
+
+            return Inertia::render('media-history', [
+                'histories' => $histories,
+            ]);
+        }
+        else
+        {
+            return back()->with('error', __('Permission denied'));
+        }
+    }
+
+
+
     public function index()
     {
         if(Auth::user()->can('manage-media')){
@@ -352,7 +384,21 @@ class MediaController extends Controller
             }
 
             $media = $query->firstOrFail();
-            $fileSize = $media->size;
+            $directory = $media->directory_id ? MediaDirectory::find($media->directory_id) : null;
+
+            MediaDeletionHistory::create([
+                'media_id' => $media->id,
+                'user_id' => auth()->id(),
+                'created_by' => creatorId(),
+                'directory_id' => $media->directory_id,
+                'directory_name' => $directory?->name,
+                'name' => $media->name,
+                'file_name' => $media->file_name,
+                'mime_type' => $media->mime_type,
+                'disk' => $media->disk,
+                'size' => $media->size,
+                'deleted_at' => now(),
+            ]);
 
             try {
                 // Delete file from storage
