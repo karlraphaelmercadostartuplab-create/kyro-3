@@ -30,7 +30,7 @@ export default function Create({ onSuccess }: { onSuccess: () => void }) {
     };
 
     return (
-        <DialogContent>
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-2xl">
             <DialogHeader>
                 <DialogTitle>{t('Create Support Ticket')}</DialogTitle>
             </DialogHeader>
@@ -81,7 +81,7 @@ export default function Create({ onSuccess }: { onSuccess: () => void }) {
                     </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
                         <Label htmlFor="category_id">{t('Category')}</Label>
                         <Select value={data.category_id.toString()} onValueChange={(value) => setData('category_id', parseInt(value))}>
@@ -121,7 +121,7 @@ export default function Create({ onSuccess }: { onSuccess: () => void }) {
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-2">
+                <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                     <Button type="button" variant="outline" onClick={onSuccess}>
                         {t('Cancel')}
                     </Button>

@@ -16,7 +16,7 @@ export function SearchInput({
   onChange, 
   onSearch, 
   placeholder,
-  className = "w-80"
+  className = "w-full"
 }: SearchInputProps) {
   const { t } = useTranslation();
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -26,8 +26,8 @@ export function SearchInput({
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <div className="relative">
+    <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
+      <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder={placeholder || t('Search...')}
@@ -50,7 +50,9 @@ export function SearchInput({
           </Button>
         )}
       </div>
-      <Button type="button" onClick={() => onSearch()}>{t('Search')}</Button>
+      <Button type="button" onClick={() => onSearch()} className="w-full sm:w-auto">
+        {t('Search')}
+      </Button>
     </div>
   );
 

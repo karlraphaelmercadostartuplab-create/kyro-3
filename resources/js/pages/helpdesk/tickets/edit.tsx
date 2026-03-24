@@ -31,7 +31,7 @@ export default function Edit({ ticket, onSuccess }: { ticket: any; onSuccess: ()
     };
 
     return (
-        <DialogContent>
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-2xl">
             <DialogHeader>
                 <DialogTitle>{t('Edit Support Ticket')}</DialogTitle>
             </DialogHeader>
@@ -58,7 +58,7 @@ export default function Edit({ ticket, onSuccess }: { ticket: any; onSuccess: ()
                     <InputError message={errors.description} />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
                         <Label htmlFor="edit_status">{t('Status')}</Label>
                         <Select value={data.status} onValueChange={(value) => setData('status', value as any)}>
@@ -109,7 +109,7 @@ export default function Edit({ ticket, onSuccess }: { ticket: any; onSuccess: ()
                     <InputError message={errors.category_id} />
                 </div>
 
-                <div className="flex justify-end gap-2">
+                <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                     <Button type="button" variant="outline" onClick={onSuccess}>
                         {t('Cancel')}
                     </Button>
