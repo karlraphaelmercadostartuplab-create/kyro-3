@@ -50,8 +50,11 @@ class MessengerController extends Controller
                 // Company or user with manage-own-users can see own users
                 $query->where('creator_id', $user->id);
             } else {
-                // Default: only own company account
-                $query->where('id', creatorId());
+                // Default: show users in the same company (including company account)
+                $query->where(function ($sameCompanyQuery) {
+                    $sameCompanyQuery->where('created_by', creatorId())
+                        ->orWhere('id', creatorId());
+                });
             }
 
             if (!empty($conversationPartnerIds)) {
@@ -565,4 +568,5 @@ class MessengerController extends Controller
             'new_messages_count' => $newMessages->count()
         ]);
     }
+    
 }
