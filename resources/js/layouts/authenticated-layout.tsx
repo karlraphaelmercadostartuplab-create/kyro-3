@@ -54,7 +54,7 @@ function AuthenticatedLayoutContent({
             )}
         </Head>
         <div
-            className={settings.layoutDirection === 'rtl' ? 'rtl' : 'ltr'}
+            className={`${settings.layoutDirection === 'rtl' ? 'rtl' : 'ltr'} overflow-x-hidden`}
             data-theme={settings.themeMode}
             dir={settings.layoutDirection === 'rtl' ? 'rtl' : 'ltr'}
             style={{ direction: settings.layoutDirection === 'rtl' ? 'rtl' : 'ltr' }}
@@ -62,24 +62,24 @@ function AuthenticatedLayoutContent({
         <SidebarProvider defaultOpen={true}>
             <AppSidebar />
 
-            <SidebarInset className="overflow-visible"
+            <SidebarInset className="overflow-x-hidden"
                 style={{ direction: settings.layoutDirection === 'rtl' ? 'rtl' : 'ltr' }}
                 dir={settings.layoutDirection === 'rtl' ? 'rtl' : 'ltr'}
             >
                 <header
-                    className={`bg-background flex h-12 shrink-0 items-center gap-2 px-4 py-1 border-b mb-2 justify-between`}
+                    className={`bg-background flex min-h-12 shrink-0 flex-wrap items-center gap-2 border-b px-3 py-2 sm:px-4 mb-2 justify-between`}
                     >
                     {/* Sidebar + Breadcrumb */}
-                    <div className={`flex items-center gap-2 ${ settings.layoutDirection === "rtl" ? "order-2 flex-row-reverse" : "order-1" }`} >
+                    <div className={`flex min-w-0 flex-1 items-center gap-2 ${ settings.layoutDirection === "rtl" ? "order-2 flex-row-reverse" : "order-1" }`} >
                         {/* SidebarTrigger */}
-                        <SidebarTrigger className={`-ml-1 ${ settings.layoutDirection === "rtl" ? "order-3" : "order-1" }`} />
+                        <SidebarTrigger className={`shrink-0 -ml-1 ${ settings.layoutDirection === "rtl" ? "order-3" : "order-1" }`} />
 
                         {/* Separator */}
-                        <Separator orientation="vertical" className="mr-2 h-4 order-2" />
+                        <Separator orientation="vertical" className="mr-2 hidden h-4 order-2 sm:block" />
 
                         {/* Breadcrumb */}
-                        <Breadcrumb className={`${ settings.layoutDirection === "rtl" ? "order-1" : "order-3" }`} >
-                            <BreadcrumbList className={`flex ${ settings.layoutDirection === "rtl" ? "justify-end" : "justify-start" }`} >
+                        <Breadcrumb className={`min-w-0 ${ settings.layoutDirection === "rtl" ? "order-1" : "order-3" }`} >
+                            <BreadcrumbList className={`flex min-w-0 flex-wrap ${ settings.layoutDirection === "rtl" ? "justify-end" : "justify-start" }`} >
                             <BreadcrumbItem>
                                 <BreadcrumbLink asChild>
                                     <Link href={route("dashboard")}>{t('Dashboard')}</Link>
@@ -105,7 +105,7 @@ function AuthenticatedLayoutContent({
 
                     {/* NavUser */}
                     <div
-                        className={`flex items-center gap-2 ${
+                        className={`flex shrink-0 items-center gap-2 ${
                         settings.layoutDirection === "rtl" ? "order-1 flex-row-reverse" : "order-2"
                         }`}
                     >
@@ -125,11 +125,11 @@ function AuthenticatedLayoutContent({
                     </div>
                 </header>
 
-                <main className="p-4 md:pt-0 h-full">
+                <main className="h-full overflow-x-hidden p-3 md:pt-0 sm:p-4">
                     {pageTitle && (
-                        <div className="flex items-center mb-4" dir={settings.layoutDirection}>
-                            <h1 className="text-xl font-semibold flex-1">{pageTitle}</h1>
-                            <div className="flex-shrink-0">{pageActions}</div>
+                        <div className="mb-4 flex items-start justify-between gap-3" dir={settings.layoutDirection}>
+                            <h1 className="min-w-0 flex-1 break-words text-xl font-semibold">{pageTitle}</h1>
+                            <div className="flex shrink-0 justify-end">{pageActions}</div>
                         </div>
                     )}
                     {children}
